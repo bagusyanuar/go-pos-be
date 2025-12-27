@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
+	"github.com/bagusyanuar/go-pos-be/pkg/exception"
 	"gorm.io/gorm"
 )
 
@@ -33,12 +35,30 @@ func (p *productCategoryRepositoryImpl) Delete(ctx context.Context, id string) e
 
 // FindAll implements ProductCategoryRepository.
 func (p *productCategoryRepositoryImpl) FindAll(ctx context.Context) ([]entity.ProductCategory, error) {
-	panic("unimplemented")
+	tx := p.DB.WithContext(ctx)
+
+	var data []entity.ProductCategory
+	if err := tx.Find(&data).Error; err != nil {
+		return []entity.ProductCategory{}, err
+	}
+	return data, nil
 }
 
 // FindByID implements ProductCategoryRepository.
 func (p *productCategoryRepositoryImpl) FindByID(ctx context.Context, id string) (*entity.ProductCategory, error) {
-	panic("unimplemented")
+	tx := p.DB.WithContext(ctx)
+
+	productCategory := new(entity.ProductCategory)
+
+	if err := tx.Where("id = ?", id).
+		First(productCategory).
+		Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, exception.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return productCategory, nil
 }
 
 // Update implements ProductCategoryRepository.
