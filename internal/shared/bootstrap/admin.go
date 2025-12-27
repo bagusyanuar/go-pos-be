@@ -11,11 +11,16 @@ func initializeAdminApp() *config.AppConfig {
 	app := config.NewFiber(viper)
 	dbConfig := config.NewDatabaseConfig(viper)
 	db := config.NewDatabaseConnection(dbConfig)
+	logger := config.NewLogger(viper)
+	defer logger.Sync()
+	validator := config.NewValidator()
 
 	return &config.AppConfig{
-		App:   app,
-		Viper: viper,
-		DB:    db,
+		App:       app,
+		Viper:     viper,
+		DB:        db,
+		Logger:    logger,
+		Validator: validator,
 	}
 }
 
