@@ -6,7 +6,7 @@ import (
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 )
 
-func initializeAdminApp() *config.AppConfig {
+func initializeFinanceApp() *config.AppConfig {
 	viper := config.NewViper()
 	app := config.NewFiber(viper)
 	dbConfig := config.NewDatabaseConfig(viper)
@@ -19,14 +19,14 @@ func initializeAdminApp() *config.AppConfig {
 	}
 }
 
-func StartAdminApp() {
-	cfg := initializeAdminApp()
+func StartFinanceApp() {
+	cfg := initializeFinanceApp()
 
-	envPort := cfg.Viper.GetString("APP_ADMIN_PORT")
+	envPort := cfg.Viper.GetString("APP_FINANCE_PORT")
 	port := fmt.Sprintf(":%s", envPort)
 	server := cfg.App
-	fmt.Println("Admin server running on", port)
+	fmt.Println("Finance server running on", port)
 	if err := server.Listen(port); err != nil {
-		panic("failed to start admin server")
+		panic("failed to start finance server")
 	}
 }

@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/bagusyanuar/go-pos-be/internal/shared/bootstrap"
+)
 
 func main() {
-	fmt.Println("successfully run app finance")
+	bootstrap.StartFinanceApp()
 }
