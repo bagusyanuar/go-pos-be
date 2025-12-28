@@ -7,11 +7,12 @@ import (
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
+	"github.com/bagusyanuar/go-pos-be/pkg/util"
 )
 
 type (
 	ProductCategoryService interface {
-		FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]schema.ProductCategoryResponse, error)
+		FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]schema.ProductCategoryResponse, *util.PaginationMeta, error)
 		FindByID(ctx context.Context, id string) (*schema.ProductCategoryResponse, error)
 		Create(ctx context.Context, schema *schema.ProductCategoryRequest) error
 		Update(ctx context.Context, id string, schema *schema.ProductCategoryRequest) error
@@ -48,14 +49,14 @@ func (p *productCategoryServiceImpl) Delete(ctx context.Context, id string) erro
 }
 
 // FindAll implements ProductCategoryService.
-func (p *productCategoryServiceImpl) FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]schema.ProductCategoryResponse, error) {
-	data, err := p.ProductCategoryRepository.FindAll(ctx)
+func (p *productCategoryServiceImpl) FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]schema.ProductCategoryResponse, *util.PaginationMeta, error) {
+	data, pagination, err := p.ProductCategoryRepository.FindAll(ctx, queryParams)
 	if err != nil {
-		return []schema.ProductCategoryResponse{}, err
+		return []schema.ProductCategoryResponse{}, nil, err
 	}
 
 	res := schema.ToProductCategories(data)
-	return res, nil
+	return res, pagination, nil
 }
 
 // FindByID implements ProductCategoryService.

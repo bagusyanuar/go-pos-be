@@ -37,7 +37,7 @@ func (h *ProductCategoryHandler) FindAll(ctx *fiber.Ctx) error {
 		})
 	}
 
-	data, err := h.ProductCategoryService.FindAll(ctx.UserContext(), queryParams)
+	data, pagination, err := h.ProductCategoryService.FindAll(ctx.UserContext(), queryParams)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"code":    fiber.StatusInternalServerError,
@@ -49,6 +49,7 @@ func (h *ProductCategoryHandler) FindAll(ctx *fiber.Ctx) error {
 		"code":    fiber.StatusOK,
 		"message": "successfully get product categories",
 		"data":    data,
+		"meta":    pagination,
 	})
 }
 

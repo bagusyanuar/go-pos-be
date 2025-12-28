@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 
+	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
 	"github.com/bagusyanuar/go-pos-be/pkg/exception"
+	"github.com/bagusyanuar/go-pos-be/pkg/util"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type (
 	ProductCategoryRepository interface {
-		FindAll(ctx context.Context) ([]entity.ProductCategory, error)
+		FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]entity.ProductCategory, *util.PaginationMeta, error)
 		FindByID(ctx context.Context, id string) (*entity.ProductCategory, error)
 		Create(ctx context.Context, e *entity.ProductCategory) (*entity.ProductCategory, error)
 		Update(ctx context.Context, id string, entry map[string]any) (*entity.ProductCategory, error)
@@ -51,14 +53,30 @@ func (p *productCategoryRepositoryImpl) Delete(ctx context.Context, id string) e
 }
 
 // FindAll implements ProductCategoryRepository.
-func (p *productCategoryRepositoryImpl) FindAll(ctx context.Context) ([]entity.ProductCategory, error) {
+func (p *productCategoryRepositoryImpl) FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]entity.ProductCategory, *util.PaginationMeta, error) {
 	tx := p.DB.WithContext(ctx)
 
+	var totalItems int64
 	var data []entity.ProductCategory
-	if err := tx.Find(&data).Error; err != nil {
-		return []entity.ProductCategory{}, err
+
+	if err := tx.
+		Model(&entity.ProductCategory{}).
+		Count(&totalItems).
+		Error; err != nil {
+		return []entity.ProductCategory{}, nil, err
 	}
-	return data, nil
+
+	if err := tx.
+		Scopes(
+			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
+		).
+		Find(&data).
+		Error; err != nil {
+		return []entity.ProductCategory{}, nil, err
+	}
+
+	pagination := util.MakePagination(queryParams.Page, queryParams.PageSize, totalItems)
+	return data, &pagination, nil
 }
 
 // FindByID implements ProductCategoryRepository.
