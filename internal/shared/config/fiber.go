@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/spf13/viper"
 )
@@ -46,6 +47,13 @@ func fiberConfig(viper *viper.Viper) fiber.Config {
 
 func NewFiber(viper *viper.Viper) *fiber.App {
 	app := fiber.New(fiberConfig(viper))
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:3000",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+	}))
+
 	app.Use(recover.New(recover.Config{
 		EnableStackTrace: true,
 	}))
