@@ -3,27 +3,17 @@ package service
 import (
 	"context"
 
-	"github.com/bagusyanuar/go-pos-be/internal/admin/repository"
+	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
 )
 
-type (
-	ProductCategoryService interface {
-		FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]schema.ProductCategoryResponse, *util.PaginationMeta, error)
-		FindByID(ctx context.Context, id string) (*schema.ProductCategoryResponse, error)
-		Create(ctx context.Context, schema *schema.ProductCategoryRequest) error
-		Update(ctx context.Context, id string, schema *schema.ProductCategoryRequest) error
-		Delete(ctx context.Context, id string) error
-	}
-
-	productCategoryServiceImpl struct {
-		ProductCategoryRepository repository.ProductCategoryRepository
-		Config                    *config.AppConfig
-	}
-)
+type productCategoryServiceImpl struct {
+	ProductCategoryRepository domain.ProductCategoryRepository
+	Config                    *config.AppConfig
+}
 
 // Create implements ProductCategoryService.
 func (p *productCategoryServiceImpl) Create(ctx context.Context, schema *schema.ProductCategoryRequest) error {
@@ -85,9 +75,9 @@ func (p *productCategoryServiceImpl) Update(ctx context.Context, id string, sche
 }
 
 func NewProductCategoryService(
-	productCategoryRepository repository.ProductCategoryRepository,
+	productCategoryRepository domain.ProductCategoryRepository,
 	config *config.AppConfig,
-) ProductCategoryService {
+) domain.ProductCategoryService {
 	return &productCategoryServiceImpl{
 		ProductCategoryRepository: productCategoryRepository,
 		Config:                    config,

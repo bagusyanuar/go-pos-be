@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
 	"github.com/bagusyanuar/go-pos-be/pkg/exception"
@@ -12,19 +13,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type (
-	ProductCategoryRepository interface {
-		FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]entity.ProductCategory, *util.PaginationMeta, error)
-		FindByID(ctx context.Context, id string) (*entity.ProductCategory, error)
-		Create(ctx context.Context, e *entity.ProductCategory) (*entity.ProductCategory, error)
-		Update(ctx context.Context, id string, entry map[string]any) (*entity.ProductCategory, error)
-		Delete(ctx context.Context, id string) error
-	}
-
-	productCategoryRepositoryImpl struct {
-		DB *gorm.DB
-	}
-)
+type productCategoryRepositoryImpl struct {
+	DB *gorm.DB
+}
 
 // Create implements ProductCategoryRepository.
 func (p *productCategoryRepositoryImpl) Create(ctx context.Context, e *entity.ProductCategory) (*entity.ProductCategory, error) {
@@ -124,7 +115,7 @@ func (p *productCategoryRepositoryImpl) getCategoryByID(tx *gorm.DB, id string) 
 	return productCategory, nil
 }
 
-func NewProductCategoryRepository(db *gorm.DB) ProductCategoryRepository {
+func NewProductCategoryRepository(db *gorm.DB) domain.ProductCategoryRepository {
 	return &productCategoryRepositoryImpl{
 		DB: db,
 	}

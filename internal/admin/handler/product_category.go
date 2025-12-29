@@ -3,8 +3,8 @@ package handler
 import (
 	"errors"
 
+	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
-	"github.com/bagusyanuar/go-pos-be/internal/admin/service"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/pkg/exception"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
@@ -12,12 +12,12 @@ import (
 )
 
 type ProductCategoryHandler struct {
-	ProductCategoryService service.ProductCategoryService
+	ProductCategoryService domain.ProductCategoryService
 	Config                 *config.AppConfig
 }
 
 func NewProductCategoryHandler(
-	productCategoryService service.ProductCategoryService,
+	productCategoryService domain.ProductCategoryService,
 	config *config.AppConfig,
 ) *ProductCategoryHandler {
 	return &ProductCategoryHandler{
