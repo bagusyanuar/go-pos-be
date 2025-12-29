@@ -62,15 +62,17 @@ func (p *productCategoryServiceImpl) FindByID(ctx context.Context, id string) (*
 
 // Update implements ProductCategoryService.
 func (p *productCategoryServiceImpl) Update(ctx context.Context, id string, schema *schema.ProductCategoryRequest) error {
-	entry := map[string]any{
-		"name": schema.Name,
-	}
-
-	_, err := p.ProductCategoryRepository.Update(ctx, id, entry)
+	productCategory, err := p.ProductCategoryRepository.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
+	productCategory.Name = schema.Name
+
+	_, err = p.ProductCategoryRepository.Update(ctx, productCategory)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

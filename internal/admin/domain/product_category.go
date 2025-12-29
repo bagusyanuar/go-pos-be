@@ -14,7 +14,7 @@ type (
 		FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]entity.ProductCategory, *util.PaginationMeta, error)
 		FindByID(ctx context.Context, id string) (*entity.ProductCategory, error)
 		Create(ctx context.Context, e *entity.ProductCategory) (*entity.ProductCategory, error)
-		Update(ctx context.Context, id string, entry map[string]any) (*entity.ProductCategory, error)
+		Update(ctx context.Context, e *entity.ProductCategory) (*entity.ProductCategory, error)
 		Delete(ctx context.Context, id string) error
 	}
 

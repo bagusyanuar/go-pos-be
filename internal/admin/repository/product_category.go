@@ -10,7 +10,6 @@ import (
 	"github.com/bagusyanuar/go-pos-be/pkg/exception"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type productCategoryRepositoryImpl struct {
@@ -74,9 +73,13 @@ func (p *productCategoryRepositoryImpl) FindAll(ctx context.Context, queryParams
 func (p *productCategoryRepositoryImpl) FindByID(ctx context.Context, id string) (*entity.ProductCategory, error) {
 	tx := p.DB.WithContext(ctx)
 
-	productCategory, err := p.getCategoryByID(tx, id)
+	productCategory := new(entity.ProductCategory)
 
-	if err != nil {
+	if err := tx.Where("id = ?", id).
+		First(productCategory).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, exception.ErrRecordNotFound
+		}
 		return nil, err
 	}
 
@@ -84,21 +87,14 @@ func (p *productCategoryRepositoryImpl) FindByID(ctx context.Context, id string)
 }
 
 // Update implements ProductCategoryRepository.
-func (p *productCategoryRepositoryImpl) Update(ctx context.Context, id string, entry map[string]any) (*entity.ProductCategory, error) {
+func (p *productCategoryRepositoryImpl) Update(ctx context.Context, e *entity.ProductCategory) (*entity.ProductCategory, error) {
 	tx := p.DB.WithContext(ctx)
-	productCategory, err := p.getCategoryByID(tx, id)
 
-	if err != nil {
+	if err := tx.Save(e).Error; err != nil {
 		return nil, err
 	}
 
-	if err := tx.Model(productCategory).
-		Omit(clause.Associations).
-		Updates(&entry).Error; err != nil {
-		return nil, err
-	}
-
-	return productCategory, nil
+	return e, nil
 }
 
 func (p *productCategoryRepositoryImpl) getCategoryByID(tx *gorm.DB, id string) (*entity.ProductCategory, error) {
