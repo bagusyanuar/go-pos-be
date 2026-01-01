@@ -39,8 +39,8 @@ func (p *productCategoryServiceImpl) Delete(ctx context.Context, id string) erro
 }
 
 // FindAll implements ProductCategoryService.
-func (p *productCategoryServiceImpl) FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]schema.ProductCategoryResponse, *util.PaginationMeta, error) {
-	data, pagination, err := p.ProductCategoryRepository.FindAll(ctx, queryParams)
+func (p *productCategoryServiceImpl) Find(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]schema.ProductCategoryResponse, *util.PaginationMeta, error) {
+	data, pagination, err := p.ProductCategoryRepository.Find(ctx, queryParams)
 	if err != nil {
 		return []schema.ProductCategoryResponse{}, nil, err
 	}

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
@@ -43,7 +44,7 @@ func (p *productCategoryRepositoryImpl) Delete(ctx context.Context, id string) e
 }
 
 // FindAll implements ProductCategoryRepository.
-func (p *productCategoryRepositoryImpl) FindAll(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]entity.ProductCategory, *util.PaginationMeta, error) {
+func (p *productCategoryRepositoryImpl) Find(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]entity.ProductCategory, *util.PaginationMeta, error) {
 	tx := p.DB.WithContext(ctx)
 
 	var totalItems int64
@@ -58,6 +59,7 @@ func (p *productCategoryRepositoryImpl) FindAll(ctx context.Context, queryParams
 
 	if err := tx.
 		Scopes(
+			p.filterByParam(queryParams.Param),
 			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
 		).
 		Find(&data).
@@ -109,6 +111,18 @@ func (p *productCategoryRepositoryImpl) getCategoryByID(tx *gorm.DB, id string) 
 	}
 
 	return productCategory, nil
+}
+
+func (p *productCategoryRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if param == "" {
+			return tx
+		}
+
+		searchQuery := fmt.Sprintf("%%%s%%", param)
+		return tx.
+			Where("name ILIKE ?", searchQuery)
+	}
 }
 
 func NewProductCategoryRepository(db *gorm.DB) domain.ProductCategoryRepository {

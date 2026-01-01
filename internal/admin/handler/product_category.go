@@ -68,7 +68,7 @@ func (p *productCategoryHandlerImpl) Find(ctx *fiber.Ctx) error {
 		})
 	}
 
-	data, pagination, err := p.ProductCategoryService.FindAll(ctx.UserContext(), queryParams)
+	data, pagination, err := p.ProductCategoryService.Find(ctx.UserContext(), queryParams)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"code":    fiber.StatusInternalServerError,
