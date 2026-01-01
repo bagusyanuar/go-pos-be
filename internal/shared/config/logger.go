@@ -10,12 +10,12 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func NewLogger(viper *viper.Viper) *zap.Logger {
-	var (
-		logger     *zap.Logger
-		onceLogger sync.Once
-	)
+var (
+	globalLogger *zap.Logger
+	onceLogger   sync.Once
+)
 
+func NewLogger(viper *viper.Viper) *zap.Logger {
 	onceLogger.Do(func() {
 		logFile := &lumberjack.Logger{
 			Filename:   viper.GetString("LOG_FILE"),
@@ -25,26 +25,40 @@ func NewLogger(viper *viper.Viper) *zap.Logger {
 			Compress:   viper.GetBool("LOG_COMPRESS"),
 		}
 
-		encoderConfig := zapcore.EncoderConfig{
-			TimeKey:        "time",
-			LevelKey:       "level",
-			NameKey:        "logger",
-			CallerKey:      "caller",
-			MessageKey:     "msg",
-			StacktraceKey:  "stacktrace",
-			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.CapitalColorLevelEncoder,
-			EncodeTime:     zapcore.ISO8601TimeEncoder,
-			EncodeDuration: zapcore.SecondsDurationEncoder,
-			EncodeCaller:   zapcore.ShortCallerEncoder,
+		// encoderConfig := zapcore.EncoderConfig{
+		// 	TimeKey:        "time",
+		// 	LevelKey:       "level",
+		// 	NameKey:        "logger",
+		// 	CallerKey:      "caller",
+		// 	MessageKey:     "msg",
+		// 	StacktraceKey:  "stacktrace",
+		// 	LineEnding:     zapcore.DefaultLineEnding,
+		// 	EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+		// 	EncodeTime:     zapcore.ISO8601TimeEncoder,
+		// 	EncodeDuration: zapcore.SecondsDurationEncoder,
+		// 	EncodeCaller:   zapcore.ShortCallerEncoder,
+		// }
+
+		levelStr := viper.GetString("LOG_LEVEL")
+		var zapLevel zapcore.Level
+		if err := zapLevel.UnmarshalText([]byte(levelStr)); err != nil {
+			zapLevel = zapcore.InfoLevel // fallback
 		}
 
+		consoleConfig := zap.NewDevelopmentEncoderConfig()
+		consoleConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		consoleConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+		// Config khusus untuk File (JSON, bersih tanpa warna)
+		fileConfig := zap.NewProductionEncoderConfig()
+		fileConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
 		core := zapcore.NewTee(
-			zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(os.Stdout), zapcore.DebugLevel),
-			zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), zapcore.AddSync(logFile), zapcore.InfoLevel),
+			zapcore.NewCore(zapcore.NewConsoleEncoder(consoleConfig), zapcore.AddSync(os.Stdout), zapcore.DebugLevel),
+			zapcore.NewCore(zapcore.NewJSONEncoder(fileConfig), zapcore.AddSync(logFile), zapcore.InfoLevel),
 		)
 
-		logger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+		globalLogger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
 	})
-	return logger
+	return globalLogger
 }

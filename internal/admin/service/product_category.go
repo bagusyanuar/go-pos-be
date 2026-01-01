@@ -40,6 +40,7 @@ func (p *productCategoryServiceImpl) Delete(ctx context.Context, id string) erro
 
 // FindAll implements ProductCategoryService.
 func (p *productCategoryServiceImpl) Find(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]schema.ProductCategoryResponse, *util.PaginationMeta, error) {
+	p.Config.Logger.Info("run find all service")
 	data, pagination, err := p.ProductCategoryRepository.Find(ctx, queryParams)
 	if err != nil {
 		return []schema.ProductCategoryResponse{}, nil, err
