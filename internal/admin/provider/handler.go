@@ -14,6 +14,6 @@ func NewHandlers(
 	config *config.AppConfig,
 ) *Handlers {
 	return &Handlers{
-		ProductCategory: *handler.NewProductCategoryHandler(services.ProductCategory, config),
+		ProductCategory: handler.NewProductCategoryHandler(services.ProductCategory, config),
 	}
 }

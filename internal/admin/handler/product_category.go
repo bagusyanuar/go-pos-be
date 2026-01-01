@@ -11,23 +11,54 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type ProductCategoryHandler struct {
-	ProductCategoryService domain.ProductCategoryService
-	Config                 *config.AppConfig
-}
-
-func NewProductCategoryHandler(
-	productCategoryService domain.ProductCategoryService,
-	config *config.AppConfig,
-) *ProductCategoryHandler {
-	return &ProductCategoryHandler{
-		ProductCategoryService: productCategoryService,
-		Config:                 config,
+type (
+	ProductCategoryHandler interface {
+		Find(ctx *fiber.Ctx) error
+		FindByID(ctx *fiber.Ctx) error
+		Create(ctx *fiber.Ctx) error
 	}
+
+	productCategoryHandlerImpl struct {
+		ProductCategoryService domain.ProductCategoryService
+		Config                 *config.AppConfig
+	}
+)
+
+// Create implements ProductCategoryHandler.
+func (p *productCategoryHandlerImpl) Create(ctx *fiber.Ctx) error {
+	req := new(schema.ProductCategoryRequest)
+	if err := ctx.BodyParser(req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"code":    fiber.StatusBadRequest,
+			"message": exception.ErrInvalidRequestBody.Error(),
+		})
+	}
+
+	messages, err := util.Validate(p.Config.Validator, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"code":    fiber.StatusUnprocessableEntity,
+			"message": exception.ErrValidation.Error(),
+			"errors":  messages,
+		})
+	}
+
+	err = p.ProductCategoryService.Create(ctx.UserContext(), req)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"code":    fiber.StatusInternalServerError,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"code":    fiber.StatusCreated,
+		"message": "successfully create new product category",
+	})
 }
 
-func (h *ProductCategoryHandler) FindAll(ctx *fiber.Ctx) error {
-
+// Find implements ProductCategoryHandler.
+func (p *productCategoryHandlerImpl) Find(ctx *fiber.Ctx) error {
 	queryParams := new(schema.ProductCategoryQuery)
 	if err := ctx.QueryParser(queryParams); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -37,7 +68,7 @@ func (h *ProductCategoryHandler) FindAll(ctx *fiber.Ctx) error {
 		})
 	}
 
-	data, pagination, err := h.ProductCategoryService.FindAll(ctx.UserContext(), queryParams)
+	data, pagination, err := p.ProductCategoryService.FindAll(ctx.UserContext(), queryParams)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"code":    fiber.StatusInternalServerError,
@@ -53,10 +84,11 @@ func (h *ProductCategoryHandler) FindAll(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *ProductCategoryHandler) FindByID(ctx *fiber.Ctx) error {
+// FindByID implements ProductCategoryHandler.
+func (p *productCategoryHandlerImpl) FindByID(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
-	data, err := h.ProductCategoryService.FindByID(ctx.UserContext(), id)
+	data, err := p.ProductCategoryService.FindByID(ctx.UserContext(), id)
 	if err != nil {
 		if errors.Is(err, exception.ErrRecordNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -77,34 +109,12 @@ func (h *ProductCategoryHandler) FindByID(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *ProductCategoryHandler) Create(ctx *fiber.Ctx) error {
-	req := new(schema.ProductCategoryRequest)
-	if err := ctx.BodyParser(req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"code":    fiber.StatusBadRequest,
-			"message": exception.ErrInvalidRequestBody.Error(),
-		})
+func NewProductCategoryHandler(
+	productCategoryService domain.ProductCategoryService,
+	config *config.AppConfig,
+) ProductCategoryHandler {
+	return &productCategoryHandlerImpl{
+		ProductCategoryService: productCategoryService,
+		Config:                 config,
 	}
-
-	messages, err := util.Validate(h.Config.Validator, req)
-	if err != nil {
-		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-			"code":    fiber.StatusUnprocessableEntity,
-			"message": exception.ErrValidation.Error(),
-			"errors":  messages,
-		})
-	}
-
-	err = h.ProductCategoryService.Create(ctx.UserContext(), req)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"code":    fiber.StatusInternalServerError,
-			"message": err.Error(),
-		})
-	}
-
-	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"code":    fiber.StatusCreated,
-		"message": "successfully create new product category",
-	})
 }

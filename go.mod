@@ -2,7 +2,10 @@ module github.com/bagusyanuar/go-pos-be
 
 go 1.24.5
 
+require github.com/gofiber/contrib/jwt v1.1.2
+
 require (
+	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect

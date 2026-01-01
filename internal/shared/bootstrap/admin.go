@@ -11,6 +11,7 @@ func NewAdminConfig() *config.AppConfig {
 	db := config.NewDatabaseConnection(dbConfig)
 	logger := config.NewLogger(viper)
 	validator := config.NewValidator()
+	jwt := config.NewJWTManager(viper)
 
 	return &config.AppConfig{
 		App:       app,
@@ -18,5 +19,6 @@ func NewAdminConfig() *config.AppConfig {
 		DB:        db,
 		Logger:    logger,
 		Validator: validator,
+		JWT:       jwt,
 	}
 }

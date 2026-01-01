@@ -3,6 +3,7 @@ package admin
 import (
 	"github.com/bagusyanuar/go-pos-be/internal/admin/provider"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
+	"github.com/bagusyanuar/go-pos-be/internal/shared/middleware"
 )
 
 func RegisterRoutes(
@@ -11,12 +12,11 @@ func RegisterRoutes(
 ) {
 	app := config.App
 
-	apiV1 := app.Group("/v1")
+	jwtMiddleware := middleware.VerifyJWT(config)
+	privateApi := app.Group("/", jwtMiddleware)
 
-	adminApi := apiV1.Group("/admin")
-
-	productCategories := adminApi.Group("/product-category")
-	productCategories.Get("/", handlers.ProductCategory.FindAll)
+	productCategories := privateApi.Group("/product-category")
+	productCategories.Get("/", handlers.ProductCategory.Find)
 	productCategories.Post("/", handlers.ProductCategory.Create)
 	productCategories.Get("/:id", handlers.ProductCategory.FindByID)
 }
