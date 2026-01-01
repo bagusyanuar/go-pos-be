@@ -46,7 +46,7 @@ migrate-drop:
 	@echo Successfully drop all table.
 
 migrate-seed:
-	go run cmd/seed/main.go
+	go run db/seed/main.go
 	@echo Successfully seed
 
 help:

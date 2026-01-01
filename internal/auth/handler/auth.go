@@ -50,6 +50,13 @@ func (a *authHandlerImpl) Login(ctx *fiber.Ctx) error {
 				"message": err.Error(),
 			})
 		}
+
+		if errors.Is(err, exception.ErrPasswordMissmatch) {
+			return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"code":    fiber.StatusUnauthorized,
+				"message": err.Error(),
+			})
+		}
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"code":    fiber.StatusInternalServerError,
 			"message": err.Error(),
