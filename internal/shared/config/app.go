@@ -14,4 +14,5 @@ type AppConfig struct {
 	DB        *gorm.DB
 	Logger    *zap.Logger
 	Validator *validator.Validate
+	JWT       *JWTConfig
 }
