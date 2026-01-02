@@ -7,11 +7,13 @@ import (
 )
 
 type Repositories struct {
-	ProductCategory domain.ProductCategoryRepository
+	ProductCategory  domain.ProductCategoryRepository
+	MaterialCategory domain.MaterialCategoryRepository
 }
 
 func NewRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
-		ProductCategory: repository.NewProductCategoryRepository(db),
+		ProductCategory:  repository.NewProductCategoryRepository(db),
+		MaterialCategory: repository.NewMaterialCategoryRepository(db),
 	}
 }
