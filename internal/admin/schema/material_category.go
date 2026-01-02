@@ -34,10 +34,10 @@ func ToMaterialCategory(materialCategory *entity.MaterialCategory) *MaterialCate
 	}
 }
 
-func ToMaterialCategories(productCategories []entity.ProductCategory) []ProductCategoryResponse {
-	responses := make([]ProductCategoryResponse, 0, len(productCategories))
-	for _, v := range productCategories {
-		res := ToProductCategory(&v)
+func ToMaterialCategories(materialCategories []entity.MaterialCategory) []MaterialCategoryResponse {
+	responses := make([]MaterialCategoryResponse, 0, len(materialCategories))
+	for _, v := range materialCategories {
+		res := ToMaterialCategory(&v)
 		if res != nil {
 			responses = append(responses, *res)
 		}
