@@ -6,7 +6,8 @@ import (
 )
 
 type Handlers struct {
-	ProductCategory handler.ProductCategoryHandler
+	ProductCategory  handler.ProductCategoryHandler
+	MaterialCategory handler.MaterialCategoryHandler
 }
 
 func NewHandlers(
@@ -14,6 +15,7 @@ func NewHandlers(
 	config *config.AppConfig,
 ) *Handlers {
 	return &Handlers{
-		ProductCategory: handler.NewProductCategoryHandler(services.ProductCategory, config),
+		ProductCategory:  handler.NewProductCategoryHandler(services.ProductCategory, config),
+		MaterialCategory: handler.NewMaterialCategoryHandler(services.MaterialCategory, config),
 	}
 }

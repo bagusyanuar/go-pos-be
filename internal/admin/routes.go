@@ -15,6 +15,11 @@ func RegisterRoutes(
 	jwtMiddleware := middleware.VerifyJWT(config)
 	privateApi := app.Group("/", jwtMiddleware)
 
+	materialCategories := privateApi.Group("/material-category")
+	materialCategories.Get("/", handlers.MaterialCategory.Find)
+	materialCategories.Post("/", handlers.MaterialCategory.Create)
+	materialCategories.Get("/:id", handlers.MaterialCategory.FindByID)
+
 	productCategories := privateApi.Group("/product-category")
 	productCategories.Get("/", handlers.ProductCategory.Find)
 	productCategories.Post("/", handlers.ProductCategory.Create)
