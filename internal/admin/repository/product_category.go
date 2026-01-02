@@ -100,20 +100,6 @@ func (p *productCategoryRepositoryImpl) Update(ctx context.Context, e *entity.Pr
 	return e, nil
 }
 
-func (p *productCategoryRepositoryImpl) getCategoryByID(tx *gorm.DB, id string) (*entity.ProductCategory, error) {
-	productCategory := new(entity.ProductCategory)
-
-	if err := tx.Where("id = ?", id).
-		First(productCategory).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, exception.ErrRecordNotFound
-		}
-		return nil, err
-	}
-
-	return productCategory, nil
-}
-
 func (p *productCategoryRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gorm.DB {
 	return func(tx *gorm.DB) *gorm.DB {
 		if param == "" {

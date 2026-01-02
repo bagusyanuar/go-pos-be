@@ -24,4 +24,6 @@ func RegisterRoutes(
 	productCategories.Get("/", handlers.ProductCategory.Find)
 	productCategories.Post("/", handlers.ProductCategory.Create)
 	productCategories.Get("/:id", handlers.ProductCategory.FindByID)
+	productCategories.Put("/:id", handlers.ProductCategory.Update)
+	productCategories.Delete("/:id", handlers.ProductCategory.Delete)
 }
