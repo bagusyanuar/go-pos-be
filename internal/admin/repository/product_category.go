@@ -30,14 +30,15 @@ func (p *productCategoryRepositoryImpl) Create(ctx context.Context, e *entity.Pr
 // Delete implements ProductCategoryRepository.
 func (p *productCategoryRepositoryImpl) Delete(ctx context.Context, id string) error {
 	tx := p.DB.WithContext(ctx)
-	productCategory, err := p.getCategoryByID(tx, id)
 
-	if err != nil {
-		return err
+	result := tx.Delete(&entity.ProductCategory{}, "id = ?", id)
+
+	if result.Error != nil {
+		return result.Error
 	}
 
-	if err := tx.Delete(productCategory).Error; err != nil {
-		return err
+	if result.RowsAffected == 0 {
+		return exception.ErrRecordNotFound
 	}
 
 	return nil

@@ -30,7 +30,15 @@ func (p *productCategoryServiceImpl) Create(ctx context.Context, schema *schema.
 
 // Delete implements ProductCategoryService.
 func (p *productCategoryServiceImpl) Delete(ctx context.Context, id string) error {
-	err := p.ProductCategoryRepository.Delete(ctx, id)
+
+	// validate data is exists
+	_, err := p.FindByID(ctx, id)
+
+	if err != nil {
+		return err
+	}
+
+	err = p.ProductCategoryRepository.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
