@@ -28,4 +28,11 @@ func RegisterRoutes(
 	productCategories.Get("/:id", handlers.ProductCategory.FindByID)
 	productCategories.Put("/:id", handlers.ProductCategory.Update)
 	productCategories.Delete("/:id", handlers.ProductCategory.Delete)
+
+	unit := privateApi.Group("/unit")
+	unit.Get("/", handlers.Unit.Find)
+	unit.Post("/", handlers.Unit.Create)
+	unit.Get("/:id", handlers.Unit.FindByID)
+	unit.Put("/:id", handlers.Unit.Update)
+	unit.Delete("/:id", handlers.Unit.Delete)
 }

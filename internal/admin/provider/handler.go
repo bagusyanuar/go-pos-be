@@ -8,6 +8,7 @@ import (
 type Handlers struct {
 	ProductCategory  handler.ProductCategoryHandler
 	MaterialCategory handler.MaterialCategoryHandler
+	Unit             handler.UnitHandler
 }
 
 func NewHandlers(
@@ -17,5 +18,6 @@ func NewHandlers(
 	return &Handlers{
 		ProductCategory:  handler.NewProductCategoryHandler(services.ProductCategory, config),
 		MaterialCategory: handler.NewMaterialCategoryHandler(services.MaterialCategory, config),
+		Unit:             handler.NewUnitHandler(services.Unit, config),
 	}
 }
