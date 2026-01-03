@@ -35,4 +35,12 @@ func RegisterRoutes(
 	unit.Get("/:id", handlers.Unit.FindByID)
 	unit.Put("/:id", handlers.Unit.Update)
 	unit.Delete("/:id", handlers.Unit.Delete)
+
+	material := privateApi.Group("/material")
+	material.Get("/", handlers.Material.Find)
+	material.Post("/", handlers.Material.Create)
+	material.Get("/:id", handlers.Material.FindByID)
+	material.Put("/:id", handlers.Material.Update)
+	material.Delete("/:id", handlers.Material.Delete)
+
 }

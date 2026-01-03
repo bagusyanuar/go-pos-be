@@ -115,7 +115,7 @@ func (m *materialRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gor
 	}
 }
 
-func NewMaterialRepository(db *gorm.DB) domain.MateriaRepository {
+func NewMaterialRepository(db *gorm.DB) domain.MaterialRepository {
 	return &materialRepositoryImpl{
 		DB: db,
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	MateriaRepository interface {
+	MaterialRepository interface {
 		Find(ctx context.Context, queryParams *schema.MaterialQuery) ([]entity.Material, *util.PaginationMeta, error)
 		FindByID(ctx context.Context, id string) (*entity.Material, error)
 		Create(ctx context.Context, e *entity.Material) (*entity.Material, error)

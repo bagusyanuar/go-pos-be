@@ -10,6 +10,7 @@ type Services struct {
 	ProductCategory  domain.ProductCategoryService
 	MaterialCategory domain.MaterialCategoryService
 	Unit             domain.UnitService
+	Material         domain.MaterialService
 }
 
 func NewServices(
@@ -20,5 +21,6 @@ func NewServices(
 		ProductCategory:  service.NewProductCategoryService(repos.ProductCategory, config),
 		MaterialCategory: service.NewMaterialCategoryService(repos.MaterialCategory, config),
 		Unit:             service.NewUnitService(repos.Unit, config),
+		Material:         service.NewMaterialService(repos.Material, config),
 	}
 }
