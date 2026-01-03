@@ -10,6 +10,7 @@ type Repositories struct {
 	ProductCategory  domain.ProductCategoryRepository
 	MaterialCategory domain.MaterialCategoryRepository
 	Unit             domain.UnitRepository
+	Material         domain.MateriaRepository
 }
 
 func NewRepositories(db *gorm.DB) *Repositories {
@@ -17,5 +18,6 @@ func NewRepositories(db *gorm.DB) *Repositories {
 		ProductCategory:  repository.NewProductCategoryRepository(db),
 		MaterialCategory: repository.NewMaterialCategoryRepository(db),
 		Unit:             repository.NewUnitRepository(db),
+		Material:         repository.NewMaterialRepository(db),
 	}
 }

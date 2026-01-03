@@ -1,0 +1,122 @@
+package repository
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
+	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
+	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
+	"github.com/bagusyanuar/go-pos-be/pkg/exception"
+	"github.com/bagusyanuar/go-pos-be/pkg/util"
+	"gorm.io/gorm"
+)
+
+type materialRepositoryImpl struct {
+	DB *gorm.DB
+}
+
+// Create implements domain.MateriaRepository.
+func (m *materialRepositoryImpl) Create(ctx context.Context, e *entity.Material) (*entity.Material, error) {
+	tx := m.DB.WithContext(ctx)
+	if err := tx.Create(&e).Error; err != nil {
+		return nil, err
+	}
+
+	return e, nil
+}
+
+// Delete implements domain.MateriaRepository.
+func (m *materialRepositoryImpl) Delete(ctx context.Context, id string) error {
+	tx := m.DB.WithContext(ctx)
+
+	result := tx.Delete(&entity.Material{}, "id = ?", id)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return exception.ErrRecordNotFound
+	}
+
+	return nil
+}
+
+// Find implements domain.MateriaRepository.
+func (m *materialRepositoryImpl) Find(ctx context.Context, queryParams *schema.MaterialQuery) ([]entity.Material, *util.PaginationMeta, error) {
+	tx := m.DB.WithContext(ctx)
+
+	var totalItems int64
+	var data []entity.Material
+
+	if err := tx.
+		Model(&entity.Material{}).
+		Count(&totalItems).
+		Error; err != nil {
+		return []entity.Material{}, nil, err
+	}
+
+	if err := tx.
+		Preload("MaterialCategory").
+		Scopes(
+			m.filterByParam(queryParams.Param),
+			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
+		).
+		Find(&data).
+		Error; err != nil {
+		return []entity.Material{}, nil, err
+	}
+
+	pagination := util.MakePagination(queryParams.Page, queryParams.PageSize, totalItems)
+	return data, &pagination, nil
+}
+
+// FindByID implements domain.MateriaRepository.
+func (m *materialRepositoryImpl) FindByID(ctx context.Context, id string) (*entity.Material, error) {
+	tx := m.DB.WithContext(ctx)
+
+	material := new(entity.Material)
+
+	if err := tx.
+		Preload("MaterialCategory").
+		Where("id = ?", id).
+		First(material).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, exception.ErrRecordNotFound
+		}
+		return nil, err
+	}
+
+	return material, nil
+}
+
+// Update implements domain.MateriaRepository.
+func (m *materialRepositoryImpl) Update(ctx context.Context, e *entity.Material) (*entity.Material, error) {
+	tx := m.DB.WithContext(ctx)
+
+	if err := tx.Save(e).Error; err != nil {
+		return nil, err
+	}
+
+	return e, nil
+}
+
+func (m *materialRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if param == "" {
+			return tx
+		}
+
+		searchQuery := fmt.Sprintf("%%%s%%", param)
+		return tx.
+			Where("name ILIKE ?", searchQuery)
+	}
+}
+
+func NewMaterialRepository(db *gorm.DB) domain.MateriaRepository {
+	return &materialRepositoryImpl{
+		DB: db,
+	}
+}
