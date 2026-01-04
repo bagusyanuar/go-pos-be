@@ -7,6 +7,7 @@ import (
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
+	"github.com/bagusyanuar/go-pos-be/pkg/exception"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
 )
 
@@ -17,11 +18,37 @@ type materialServiceImpl struct {
 
 // Create implements domain.MaterialService.
 func (m *materialServiceImpl) Create(ctx context.Context, schema *schema.MaterialRequest) error {
+
+	unitDefaultCount := 0
+
+	for _, u := range schema.Units {
+		if u.IsDefault {
+			unitDefaultCount++
+			if u.ConversionRate != 1 {
+				return exception.ErrUnitConversionRate
+			}
+		}
+	}
+
+	if unitDefaultCount != 1 {
+		return exception.ErrUnitDefault
+	}
+
+	units := make([]entity.MaterialUnit, 0, len(schema.Units))
+	for _, v := range schema.Units {
+		unit := entity.MaterialUnit{
+			UnitID:         v.UnitID,
+			ConversionRate: v.ConversionRate,
+			IsDefault:      v.IsDefault,
+		}
+		units = append(units, unit)
+	}
+
 	e := entity.Material{
 		MaterialCategoryID: schema.CategoryID,
 		Name:               schema.Name,
 		Description:        schema.Description,
-		Image:              nil,
+		Units:              units,
 	}
 
 	_, err := m.MaterialRepository.Create(ctx, &e)

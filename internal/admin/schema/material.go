@@ -1,18 +1,16 @@
 package schema
 
 import (
-	"mime/multipart"
-
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
 	"github.com/google/uuid"
 )
 
 type MaterialRequest struct {
-	CategoryID  *uuid.UUID            `form:"category_id" validate:"uuid4"`
-	Name        string                `form:"name" validate:"required"`
-	Description *string               `form:"description"`
-	Image       *multipart.FileHeader `form:"image"`
+	CategoryID  *uuid.UUID            `json:"category_id" validate:"uuid4"`
+	Name        string                `json:"name" validate:"required"`
+	Description *string               `json:"description"`
+	Units       []MaterialUnitRequest `json:"units" validate:"required"`
 }
 
 type MaterialQuery struct {
@@ -27,6 +25,20 @@ type MaterialResponse struct {
 	Description *string                   `json:"description"`
 	Image       *string                   `json:"image"`
 	Category    *MaterialCategoryResponse `json:"category"`
+	Units       []MaterialUnitResponse    `json:"units"`
+}
+
+type MaterialUnitRequest struct {
+	UnitID         uuid.UUID `json:"unit_id" validate:"required,uuid4"`
+	ConversionRate float64   `json:"conversion_rate" validate:"required"`
+	IsDefault      bool      `json:"is_default" validate:"required"`
+}
+
+type MaterialUnitResponse struct {
+	MaterialID     string  `json:"material_id"`
+	UnitID         string  `json:"unit_id"`
+	ConversionRate float64 `json:"conversion_rate"`
+	IsDefault      bool    `json:"is_default"`
 }
 
 func ToMaterial(material *entity.Material) *MaterialResponse {
@@ -40,12 +52,24 @@ func ToMaterial(material *entity.Material) *MaterialResponse {
 		category.Name = material.MaterialCategory.Name
 	}
 
+	units := make([]MaterialUnitResponse, 0, len(material.Units))
+	for _, v := range material.Units {
+		unit := MaterialUnitResponse{
+			MaterialID:     v.MaterialID.String(),
+			UnitID:         v.UnitID.String(),
+			ConversionRate: v.ConversionRate,
+			IsDefault:      v.IsDefault,
+		}
+		units = append(units, unit)
+	}
+
 	return &MaterialResponse{
 		ID:          material.ID.String(),
 		Name:        material.Name,
 		Description: material.Description,
 		Image:       material.Image,
 		Category:    category,
+		Units:       units,
 	}
 }
 

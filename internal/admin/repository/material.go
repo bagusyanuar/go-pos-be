@@ -11,6 +11,7 @@ import (
 	"github.com/bagusyanuar/go-pos-be/pkg/exception"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type materialRepositoryImpl struct {
@@ -19,8 +20,39 @@ type materialRepositoryImpl struct {
 
 // Create implements domain.MateriaRepository.
 func (m *materialRepositoryImpl) Create(ctx context.Context, e *entity.Material) (*entity.Material, error) {
-	tx := m.DB.WithContext(ctx)
-	if err := tx.Create(&e).Error; err != nil {
+	tx := m.DB.WithContext(ctx).Begin()
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	if err := tx.
+		Omit(clause.Associations).
+		Create(&e).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if len(e.Units) > 0 {
+		for i := range e.Units {
+			e.Units[i].MaterialID = e.ID
+		}
+
+		if err := tx.Create(&e.Units).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
 		return nil, err
 	}
 
@@ -60,6 +92,7 @@ func (m *materialRepositoryImpl) Find(ctx context.Context, queryParams *schema.M
 
 	if err := tx.
 		Preload("MaterialCategory").
+		Preload("Units").
 		Scopes(
 			m.filterByParam(queryParams.Param),
 			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
