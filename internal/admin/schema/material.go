@@ -35,10 +35,11 @@ type MaterialUnitRequest struct {
 }
 
 type MaterialUnitResponse struct {
-	MaterialID     string  `json:"material_id"`
 	UnitID         string  `json:"unit_id"`
+	Name           string  `json:"name"`
 	ConversionRate float64 `json:"conversion_rate"`
 	IsDefault      bool    `json:"is_default"`
+	Quantity       float64 `json:"quantity"`
 }
 
 func ToMaterial(material *entity.Material) *MaterialResponse {
@@ -55,8 +56,8 @@ func ToMaterial(material *entity.Material) *MaterialResponse {
 	units := make([]MaterialUnitResponse, 0, len(material.Units))
 	for _, v := range material.Units {
 		unit := MaterialUnitResponse{
-			MaterialID:     v.MaterialID.String(),
 			UnitID:         v.UnitID.String(),
+			Name:           v.Unit.Name,
 			ConversionRate: v.ConversionRate,
 			IsDefault:      v.IsDefault,
 		}

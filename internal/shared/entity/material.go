@@ -16,8 +16,9 @@ type Material struct {
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	DeletedAt          gorm.DeletedAt
-	MaterialCategory   *MaterialCategory `gorm:"foreignKey:MaterialCategoryID"`
-	Units              []MaterialUnit    `gorm:"foreignKey:MaterialID"`
+	MaterialCategory   *MaterialCategory  `gorm:"foreignKey:MaterialCategoryID"`
+	Units              []MaterialUnit     `gorm:"foreignKey:MaterialID"`
+	Inventory          *MaterialInventory `gorm:"foreignKey:MaterialID"`
 }
 
 func (e *Material) BeforeCreate(tx *gorm.DB) (err error) {

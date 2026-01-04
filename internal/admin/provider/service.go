@@ -7,10 +7,11 @@ import (
 )
 
 type Services struct {
-	ProductCategory  domain.ProductCategoryService
-	MaterialCategory domain.MaterialCategoryService
-	Unit             domain.UnitService
-	Material         domain.MaterialService
+	ProductCategory   domain.ProductCategoryService
+	MaterialCategory  domain.MaterialCategoryService
+	Unit              domain.UnitService
+	Material          domain.MaterialService
+	MaterialInventory domain.MaterialInventoryService
 }
 
 func NewServices(
@@ -18,9 +19,10 @@ func NewServices(
 	config *config.AppConfig,
 ) *Services {
 	return &Services{
-		ProductCategory:  service.NewProductCategoryService(repos.ProductCategory, config),
-		MaterialCategory: service.NewMaterialCategoryService(repos.MaterialCategory, config),
-		Unit:             service.NewUnitService(repos.Unit, config),
-		Material:         service.NewMaterialService(repos.Material, config),
+		ProductCategory:   service.NewProductCategoryService(repos.ProductCategory, config),
+		MaterialCategory:  service.NewMaterialCategoryService(repos.MaterialCategory, config),
+		Unit:              service.NewUnitService(repos.Unit, config),
+		Material:          service.NewMaterialService(repos.Material, config),
+		MaterialInventory: service.NewMaterialInventoryService(repos.MaterialInventory, config),
 	}
 }
