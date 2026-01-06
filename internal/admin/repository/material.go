@@ -92,7 +92,7 @@ func (m *materialRepositoryImpl) Find(ctx context.Context, queryParams *schema.M
 
 	if err := tx.
 		Preload("MaterialCategory").
-		Preload("Units").
+		Preload("Units.Unit").
 		Scopes(
 			m.filterByParam(queryParams.Param),
 			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
@@ -114,6 +114,7 @@ func (m *materialRepositoryImpl) FindByID(ctx context.Context, id string) (*enti
 
 	if err := tx.
 		Preload("MaterialCategory").
+		Preload("Units.Unit").
 		Where("id = ?", id).
 		First(material).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

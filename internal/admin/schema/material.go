@@ -22,10 +22,10 @@ type MaterialResponse struct {
 	ID          string                    `json:"id"`
 	Name        string                    `json:"name"`
 	Description *string                   `json:"description"`
-	Category    *MaterialMaterialCategory `json:"category"`
-	Units       []MaterialUnit            `json:"units"`
 	CreatedAt   string                    `json:"created_at"`
 	UpdatedAt   string                    `json:"updated_at"`
+	Category    *MaterialMaterialCategory `json:"category"`
+	Units       []MaterialUnit            `json:"units"`
 }
 
 type MaterialUnitRequest struct {
@@ -44,5 +44,4 @@ type MaterialUnit struct {
 	Name           string  `json:"name"`
 	ConversionRate float64 `json:"conversion_rate"`
 	IsDefault      bool    `json:"is_default"`
-	Quantity       float64 `json:"quantity"`
 }

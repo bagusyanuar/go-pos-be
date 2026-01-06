@@ -32,10 +32,10 @@ func ToMaterial(material *entity.Material) *schema.MaterialResponse {
 		ID:          material.ID.String(),
 		Name:        material.Name,
 		Description: material.Description,
-		Category:    category,
-		Units:       units,
 		CreatedAt:   material.CreatedAt.Format(constant.BaseDateTimeLayout),
 		UpdatedAt:   material.UpdatedAt.Format(constant.BaseDateTimeLayout),
+		Category:    category,
+		Units:       units,
 	}
 }
 

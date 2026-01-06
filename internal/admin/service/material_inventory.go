@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
+	"github.com/bagusyanuar/go-pos-be/internal/admin/mapper"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
@@ -21,7 +22,7 @@ func (m *materialInventoryServiceImpl) Find(ctx context.Context, queryParams *sc
 		return []schema.MaterialInventoryResponse{}, nil, err
 	}
 
-	res := schema.ToMaterialInventories(data)
+	res := mapper.ToMaterialInventories(data)
 	return res, pagination, nil
 }
 
@@ -32,7 +33,7 @@ func (m *materialInventoryServiceImpl) FindByID(ctx context.Context, id string) 
 		return nil, err
 	}
 
-	res := schema.ToMaterialInventory(data)
+	res := mapper.ToMaterialInventory(data)
 	return res, nil
 }
 
