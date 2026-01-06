@@ -23,5 +23,6 @@ type (
 		Create(ctx context.Context, schema *schema.MaterialRequest) error
 		Update(ctx context.Context, id string, schema *schema.MaterialRequest) error
 		Delete(ctx context.Context, id string) error
+		UploadImage(ctx context.Context, id string, schema *schema.MaterialImageRequest) error
 	}
 )

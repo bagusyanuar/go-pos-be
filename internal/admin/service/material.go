@@ -96,6 +96,11 @@ func (m *materialServiceImpl) Update(ctx context.Context, id string, schema *sch
 	panic("unimplemented")
 }
 
+// UploadImage implements domain.MaterialService.
+func (m *materialServiceImpl) UploadImage(ctx context.Context, id string, schema *schema.MaterialImageRequest) error {
+	panic("unimplemented")
+}
+
 func NewMaterialService(
 	materialRepository domain.MaterialRepository,
 	config *config.AppConfig,
