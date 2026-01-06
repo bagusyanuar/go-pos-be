@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
+	"github.com/bagusyanuar/go-pos-be/internal/admin/mapper"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
@@ -52,7 +53,7 @@ func (m *materialCategoryServiceImpl) Find(ctx context.Context, queryParams *sch
 		return []schema.MaterialCategoryResponse{}, nil, err
 	}
 
-	res := schema.ToMaterialCategories(data)
+	res := mapper.ToMaterialCategories(data)
 	return res, pagination, nil
 }
 
@@ -63,7 +64,7 @@ func (m *materialCategoryServiceImpl) FindByID(ctx context.Context, id string) (
 		return nil, err
 	}
 
-	res := schema.ToMaterialCategory(data)
+	res := mapper.ToMaterialCategory(data)
 	return res, nil
 }
 

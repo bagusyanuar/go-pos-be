@@ -45,7 +45,13 @@ func (m *materialCategoryRepositoryImpl) Delete(ctx context.Context, id string) 
 }
 
 // Find implements domain.MaterialCategoryRepository.
-func (m *materialCategoryRepositoryImpl) Find(ctx context.Context, queryParams *schema.MaterialCategoryQuery) ([]entity.MaterialCategory, *util.PaginationMeta, error) {
+func (m *materialCategoryRepositoryImpl) Find(
+	ctx context.Context,
+	queryParams *schema.MaterialCategoryQuery,
+) (
+	[]entity.MaterialCategory,
+	*util.PaginationMeta, error,
+) {
 	tx := m.DB.WithContext(ctx)
 
 	var totalItems int64
@@ -58,9 +64,17 @@ func (m *materialCategoryRepositoryImpl) Find(ctx context.Context, queryParams *
 		return []entity.MaterialCategory{}, nil, err
 	}
 
+	sortFieldMap := map[string]string{
+		"name":       "name",
+		"created_at": "created_at",
+	}
+	sort := util.GetSortField(queryParams.Sort, "created_at", sortFieldMap)
+	order := util.GetOrder(queryParams.Order)
+
 	if err := tx.
 		Scopes(
 			m.filterByParam(queryParams.Param),
+			util.SortScope(sort, order),
 			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
 		).
 		Find(&data).
