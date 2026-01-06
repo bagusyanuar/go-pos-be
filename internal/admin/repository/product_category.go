@@ -45,7 +45,14 @@ func (p *productCategoryRepositoryImpl) Delete(ctx context.Context, id string) e
 }
 
 // FindAll implements ProductCategoryRepository.
-func (p *productCategoryRepositoryImpl) Find(ctx context.Context, queryParams *schema.ProductCategoryQuery) ([]entity.ProductCategory, *util.PaginationMeta, error) {
+func (p *productCategoryRepositoryImpl) Find(
+	ctx context.Context,
+	queryParams *schema.ProductCategoryQuery,
+) (
+	[]entity.ProductCategory,
+	*util.PaginationMeta,
+	error,
+) {
 	tx := p.DB.WithContext(ctx)
 
 	var totalItems int64
@@ -58,9 +65,17 @@ func (p *productCategoryRepositoryImpl) Find(ctx context.Context, queryParams *s
 		return []entity.ProductCategory{}, nil, err
 	}
 
+	sortFieldMap := map[string]string{
+		"name":       "name",
+		"created_at": "created_at",
+	}
+	sort := util.GetSortField(queryParams.Sort, "created_at", sortFieldMap)
+	order := util.GetOrder(queryParams.Order)
+
 	if err := tx.
 		Scopes(
 			p.filterByParam(queryParams.Param),
+			util.SortScope(sort, order),
 			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
 		).
 		Find(&data).

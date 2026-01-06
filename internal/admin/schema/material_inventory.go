@@ -24,7 +24,7 @@ func ToMaterialInventory(material *entity.Material) *MaterialInventoryResponse {
 		return nil
 	}
 
-	category := new(MaterialCategoryResponse)
+	category := new(MaterialMaterialCategory)
 	if material.MaterialCategory != nil {
 		category.ID = material.MaterialCategory.ID.String()
 		category.Name = material.MaterialCategory.Name
@@ -42,7 +42,7 @@ func ToMaterialInventory(material *entity.Material) *MaterialInventoryResponse {
 		quantity, _ = material.Inventory.Quantity.Float64()
 	}
 
-	units := make([]MaterialUnitResponse, 0, len(material.Units))
+	units := make([]MaterialUnit, 0, len(material.Units))
 
 	sort.Slice(material.Units, func(i, j int) bool {
 		return material.Units[i].ConversionRate > material.Units[j].ConversionRate
@@ -59,7 +59,7 @@ func ToMaterialInventory(material *entity.Material) *MaterialInventoryResponse {
 		qty := remaining.Div(rate).Floor()
 
 		qtyFloat, _ := qty.Float64()
-		unit := MaterialUnitResponse{
+		unit := MaterialUnit{
 			UnitID:         v.UnitID.String(),
 			Name:           v.Unit.Name,
 			ConversionRate: v.ConversionRate,
@@ -76,7 +76,6 @@ func ToMaterialInventory(material *entity.Material) *MaterialInventoryResponse {
 			ID:          material.ID.String(),
 			Name:        material.Name,
 			Description: material.Description,
-			Image:       material.Image,
 			Category:    category,
 			Units:       units,
 		},

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
+	"github.com/bagusyanuar/go-pos-be/internal/admin/mapper"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
@@ -51,7 +52,7 @@ func (u *unitServiceImpl) Find(ctx context.Context, queryParams *schema.UnitQuer
 		return []schema.UnitResponse{}, nil, err
 	}
 
-	res := schema.ToUnits(data)
+	res := mapper.ToUnits(data)
 	return res, pagination, nil
 }
 
@@ -62,7 +63,7 @@ func (u *unitServiceImpl) FindByID(ctx context.Context, id string) (*schema.Unit
 		return nil, err
 	}
 
-	res := schema.ToUnit(data)
+	res := mapper.ToUnit(data)
 	return res, nil
 }
 

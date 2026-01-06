@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
+	"github.com/bagusyanuar/go-pos-be/internal/admin/mapper"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
@@ -81,7 +82,7 @@ func (m *materialServiceImpl) Find(ctx context.Context, queryParams *schema.Mate
 		return []schema.MaterialResponse{}, nil, err
 	}
 
-	res := schema.ToMaterials(data)
+	res := mapper.ToMaterials(data)
 	return res, pagination, nil
 }
 

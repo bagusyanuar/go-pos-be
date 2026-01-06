@@ -12,7 +12,6 @@ type Material struct {
 	MaterialCategoryID *uuid.UUID
 	Name               string
 	Description        *string
-	Image              *string
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	DeletedAt          gorm.DeletedAt

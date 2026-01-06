@@ -45,7 +45,14 @@ func (u *unitRepositoryImpl) Delete(ctx context.Context, id string) error {
 }
 
 // Find implements domain.UnitRepository.
-func (u *unitRepositoryImpl) Find(ctx context.Context, queryParams *schema.UnitQuery) ([]entity.Unit, *util.PaginationMeta, error) {
+func (u *unitRepositoryImpl) Find(
+	ctx context.Context,
+	queryParams *schema.UnitQuery,
+) (
+	[]entity.Unit,
+	*util.PaginationMeta,
+	error,
+) {
 	tx := u.DB.WithContext(ctx)
 
 	var totalItems int64
@@ -58,9 +65,17 @@ func (u *unitRepositoryImpl) Find(ctx context.Context, queryParams *schema.UnitQ
 		return []entity.Unit{}, nil, err
 	}
 
+	sortFieldMap := map[string]string{
+		"name":       "name",
+		"created_at": "created_at",
+	}
+	sort := util.GetSortField(queryParams.Sort, "created_at", sortFieldMap)
+	order := util.GetOrder(queryParams.Order)
+
 	if err := tx.
 		Scopes(
 			u.filterByParam(queryParams.Param),
+			util.SortScope(sort, order),
 			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
 		).
 		Find(&data).

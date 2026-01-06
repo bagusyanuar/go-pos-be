@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
+	"github.com/bagusyanuar/go-pos-be/internal/admin/mapper"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
@@ -54,7 +55,7 @@ func (p *productCategoryServiceImpl) Find(ctx context.Context, queryParams *sche
 		return []schema.ProductCategoryResponse{}, nil, err
 	}
 
-	res := schema.ToProductCategories(data)
+	res := mapper.ToProductCategories(data)
 	return res, pagination, nil
 }
 
@@ -65,7 +66,7 @@ func (p *productCategoryServiceImpl) FindByID(ctx context.Context, id string) (*
 		return nil, err
 	}
 
-	res := schema.ToProductCategory(data)
+	res := mapper.ToProductCategory(data)
 	return res, nil
 }
 
