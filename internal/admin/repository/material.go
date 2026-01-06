@@ -137,6 +137,21 @@ func (m *materialRepositoryImpl) Update(ctx context.Context, e *entity.Material)
 	return e, nil
 }
 
+// UploadImage implements domain.MaterialRepository.
+func (m *materialRepositoryImpl) UploadImage(ctx context.Context, e []entity.MaterialImage) error {
+	err := m.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&e).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m *materialRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gorm.DB {
 	return func(tx *gorm.DB) *gorm.DB {
 		if param == "" {

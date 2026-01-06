@@ -7,6 +7,7 @@ require github.com/gofiber/contrib/jwt v1.1.2
 require (
 	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
@@ -55,6 +56,7 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.46.0 // indirect
+	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect

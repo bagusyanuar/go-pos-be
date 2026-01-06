@@ -42,6 +42,7 @@ func RegisterRoutes(
 	material.Get("/:id", handlers.Material.FindByID)
 	material.Put("/:id", handlers.Material.Update)
 	material.Delete("/:id", handlers.Material.Delete)
+	material.Put("/:id/image", handlers.Material.UploadImage)
 
 	materialInventory := privateApi.Group("/material-inventory")
 	materialInventory.Get("/", handlers.MaterialInventory.Find)

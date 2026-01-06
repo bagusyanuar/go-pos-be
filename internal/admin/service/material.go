@@ -10,6 +10,7 @@ import (
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
 	"github.com/bagusyanuar/go-pos-be/pkg/exception"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
+	"github.com/minio/minio-go/v7"
 )
 
 type materialServiceImpl struct {
@@ -61,7 +62,7 @@ func (m *materialServiceImpl) Create(ctx context.Context, schema *schema.Materia
 
 // Delete implements domain.MaterialService.
 func (m *materialServiceImpl) Delete(ctx context.Context, id string) error {
-	_, err := m.FindByID(ctx, id)
+	_, err := m.MaterialRepository.FindByID(ctx, id)
 
 	if err != nil {
 		return err
@@ -88,7 +89,13 @@ func (m *materialServiceImpl) Find(ctx context.Context, queryParams *schema.Mate
 
 // FindByID implements domain.MaterialService.
 func (m *materialServiceImpl) FindByID(ctx context.Context, id string) (*schema.MaterialResponse, error) {
-	panic("unimplemented")
+	data, err := m.MaterialRepository.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	res := mapper.ToMaterial(data)
+	return res, nil
 }
 
 // Update implements domain.MaterialService.
@@ -98,7 +105,58 @@ func (m *materialServiceImpl) Update(ctx context.Context, id string, schema *sch
 
 // UploadImage implements domain.MaterialService.
 func (m *materialServiceImpl) UploadImage(ctx context.Context, id string, schema *schema.MaterialImageRequest) error {
-	panic("unimplemented")
+	if schema.Image == nil {
+		return exception.ErrNoFileAttched
+	}
+
+	material, err := m.MaterialRepository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	minioObj := util.MinioObject{
+		Context:    ctx,
+		Client:     m.Config.Minio.MinioClient,
+		Bucket:     m.Config.Minio.Bucket,
+		Path:       "material_categories",
+		FileHeader: schema.Image,
+	}
+
+	// Upload & Resize secara Concurrent
+	groupID, uploadResults, err := minioObj.UploadImageWithThumbnail()
+	if err != nil {
+		return err
+	}
+
+	// Preparing batch data
+	images := make([]entity.MaterialImage, 0, len(uploadResults))
+	for _, result := range uploadResults {
+		img := entity.MaterialImage{
+			MaterialID:   &material.ID,
+			ImageGroupID: groupID,
+			Type:         result.Type,
+			URL:          result.ObjectName,
+		}
+		images = append(images, img)
+	}
+
+	// Simpan ke database
+	err = m.MaterialRepository.UploadImage(ctx, images)
+	if err != nil {
+
+		// CleanUp: Hapus semua file yang baru diupload jika DB gagal
+		for _, res := range uploadResults {
+			_ = m.Config.Minio.MinioClient.RemoveObject(
+				ctx,
+				m.Config.Minio.Bucket,
+				res.ObjectName,
+				minio.RemoveObjectOptions{},
+			)
+		}
+		return err
+	}
+
+	return nil
 }
 
 func NewMaterialService(

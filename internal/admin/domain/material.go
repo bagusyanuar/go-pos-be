@@ -15,6 +15,7 @@ type (
 		Create(ctx context.Context, e *entity.Material) (*entity.Material, error)
 		Update(ctx context.Context, e *entity.Material) (*entity.Material, error)
 		Delete(ctx context.Context, id string) error
+		UploadImage(ctx context.Context, e []entity.MaterialImage) error
 	}
 
 	MaterialService interface {

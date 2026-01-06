@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
@@ -16,6 +18,7 @@ type (
 		Create(ctx *fiber.Ctx) error
 		Update(ctx *fiber.Ctx) error
 		Delete(ctx *fiber.Ctx) error
+		UploadImage(ctx *fiber.Ctx) error
 	}
 
 	materialHandlerImpl struct {
@@ -91,12 +94,79 @@ func (m *materialHandlerImpl) Find(ctx *fiber.Ctx) error {
 
 // FindByID implements MaterialHandler.
 func (m *materialHandlerImpl) FindByID(ctx *fiber.Ctx) error {
-	panic("unimplemented")
+	id := ctx.Params("id")
+
+	data, err := m.MaterialService.FindByID(ctx.UserContext(), id)
+	if err != nil {
+		if errors.Is(err, exception.ErrRecordNotFound) {
+			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"code":    fiber.StatusNotFound,
+				"message": err.Error(),
+			})
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"code":    fiber.StatusInternalServerError,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":    fiber.StatusOK,
+		"message": "successfully get material",
+		"data":    data,
+	})
 }
 
 // Update implements MaterialHandler.
 func (m *materialHandlerImpl) Update(ctx *fiber.Ctx) error {
 	panic("unimplemented")
+}
+
+// UploadImage implements MaterialHandler.
+func (m *materialHandlerImpl) UploadImage(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+
+	req := new(schema.MaterialImageRequest)
+	if err := ctx.BodyParser(req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"code":    fiber.StatusBadRequest,
+			"message": exception.ErrInvalidRequestBody.Error(),
+		})
+	}
+
+	messages, err := util.Validate(m.Config.Validator, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"code":    fiber.StatusUnprocessableEntity,
+			"message": exception.ErrValidation.Error(),
+			"errors":  messages,
+		})
+	}
+
+	fileHeader, err := ctx.FormFile("image")
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"code":    fiber.StatusBadRequest,
+			"message": "file not found",
+		})
+	}
+
+	req.Image = fileHeader
+
+	schema := req
+
+	err = m.MaterialService.UploadImage(ctx.UserContext(), id, schema)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"code":    fiber.StatusInternalServerError,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"code":    fiber.StatusCreated,
+		"message": "successfully create new material images",
+	})
 }
 
 func NewMaterialHandler(
