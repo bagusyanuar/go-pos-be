@@ -14,6 +14,8 @@ func NewAdminConfig() *config.AppConfig {
 	validator := config.NewValidator()
 	jwt := config.NewJWTManager(viper)
 
+	minio := config.NewMinioClient(viper)
+
 	logger := baseLogger.With(zap.String("app", "admin-app"))
 	return &config.AppConfig{
 		App:       app,
@@ -22,5 +24,6 @@ func NewAdminConfig() *config.AppConfig {
 		Logger:    logger,
 		Validator: validator,
 		JWT:       jwt,
+		Minio:     minio,
 	}
 }

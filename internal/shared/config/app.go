@@ -15,4 +15,5 @@ type AppConfig struct {
 	Logger    *zap.Logger
 	Validator *validator.Validate
 	JWT       *JWTConfig
+	Minio     *MinioConfig
 }
