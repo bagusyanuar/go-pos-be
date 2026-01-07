@@ -18,6 +18,11 @@ type materialRepositoryImpl struct {
 	DB *gorm.DB
 }
 
+// AppendUnit implements domain.MaterialRepository.
+func (m *materialRepositoryImpl) AppendUnit(ctx context.Context, id string, e []entity.MaterialUnit) error {
+	panic("unimplemented")
+}
+
 // Create implements domain.MateriaRepository.
 func (m *materialRepositoryImpl) Create(ctx context.Context, e *entity.Material) (*entity.Material, error) {
 	tx := m.DB.WithContext(ctx).Begin()
