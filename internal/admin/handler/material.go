@@ -27,44 +27,6 @@ type (
 	}
 )
 
-// Create implements MaterialHandler.
-func (m *materialHandlerImpl) Create(ctx *fiber.Ctx) error {
-	req := new(schema.MaterialRequest)
-	if err := ctx.BodyParser(req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"code":    fiber.StatusBadRequest,
-			"message": exception.ErrInvalidRequestBody.Error(),
-		})
-	}
-
-	messages, err := util.Validate(m.Config.Validator, req)
-	if err != nil {
-		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-			"code":    fiber.StatusUnprocessableEntity,
-			"message": exception.ErrValidation.Error(),
-			"errors":  messages,
-		})
-	}
-
-	err = m.MaterialService.Create(ctx.UserContext(), req)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"code":    fiber.StatusInternalServerError,
-			"message": err.Error(),
-		})
-	}
-
-	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"code":    fiber.StatusCreated,
-		"message": "successfully create new material",
-	})
-}
-
-// Delete implements MaterialHandler.
-func (m *materialHandlerImpl) Delete(ctx *fiber.Ctx) error {
-	panic("unimplemented")
-}
-
 // Find implements MaterialHandler.
 func (m *materialHandlerImpl) Find(ctx *fiber.Ctx) error {
 	queryParams := new(schema.MaterialQuery)
@@ -117,9 +79,90 @@ func (m *materialHandlerImpl) FindByID(ctx *fiber.Ctx) error {
 	})
 }
 
+// Create implements MaterialHandler.
+func (m *materialHandlerImpl) Create(ctx *fiber.Ctx) error {
+	req := new(schema.MaterialRequest)
+	if err := ctx.BodyParser(req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"code":    fiber.StatusBadRequest,
+			"message": exception.ErrInvalidRequestBody.Error(),
+		})
+	}
+
+	messages, err := util.Validate(m.Config.Validator, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"code":    fiber.StatusUnprocessableEntity,
+			"message": exception.ErrValidation.Error(),
+			"errors":  messages,
+		})
+	}
+
+	err = m.MaterialService.Create(ctx.UserContext(), req)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"code":    fiber.StatusInternalServerError,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"code":    fiber.StatusCreated,
+		"message": "successfully create new material",
+	})
+}
+
 // Update implements MaterialHandler.
 func (m *materialHandlerImpl) Update(ctx *fiber.Ctx) error {
-	panic("unimplemented")
+	id := ctx.Params("id")
+
+	req := new(schema.MaterialUpdateRequest)
+	if err := ctx.BodyParser(req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"code":    fiber.StatusBadRequest,
+			"message": exception.ErrInvalidRequestBody.Error(),
+		})
+	}
+
+	messages, err := util.Validate(m.Config.Validator, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"code":    fiber.StatusUnprocessableEntity,
+			"message": exception.ErrValidation.Error(),
+			"errors":  messages,
+		})
+	}
+
+	err = m.MaterialService.Update(ctx.UserContext(), id, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"code":    fiber.StatusInternalServerError,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":    fiber.StatusOK,
+		"message": "successfully update material",
+	})
+}
+
+// Delete implements MaterialHandler.
+func (m *materialHandlerImpl) Delete(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+
+	err := m.MaterialService.Delete(ctx.UserContext(), id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"code":    fiber.StatusInternalServerError,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":    fiber.StatusOK,
+		"message": "successfully delete material",
+	})
 }
 
 // UploadImage implements MaterialHandler.

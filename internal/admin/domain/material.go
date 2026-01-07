@@ -22,7 +22,7 @@ type (
 		Find(ctx context.Context, queryParams *schema.MaterialQuery) ([]schema.MaterialResponse, *util.PaginationMeta, error)
 		FindByID(ctx context.Context, id string) (*schema.MaterialResponse, error)
 		Create(ctx context.Context, schema *schema.MaterialRequest) error
-		Update(ctx context.Context, id string, schema *schema.MaterialRequest) error
+		Update(ctx context.Context, id string, schema *schema.MaterialUpdateRequest) error
 		Delete(ctx context.Context, id string) error
 		UploadImage(ctx context.Context, id string, schema *schema.MaterialImageRequest) error
 	}

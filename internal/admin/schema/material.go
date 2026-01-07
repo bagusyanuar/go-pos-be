@@ -12,6 +12,12 @@ type MaterialRequest struct {
 	Units       []MaterialUnitRequest `json:"units" validate:"required"`
 }
 
+type MaterialUpdateRequest struct {
+	CategoryID  *uuid.UUID `json:"category_id" validate:"uuid4"`
+	Name        string     `json:"name" validate:"required"`
+	Description *string    `json:"description"`
+}
+
 type MaterialQuery struct {
 	Param string `json:"param" query:"param"`
 	util.QueryPagination

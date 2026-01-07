@@ -18,6 +18,28 @@ type materialServiceImpl struct {
 	Config             *config.AppConfig
 }
 
+// Find implements domain.MaterialService.
+func (m *materialServiceImpl) Find(ctx context.Context, queryParams *schema.MaterialQuery) ([]schema.MaterialResponse, *util.PaginationMeta, error) {
+	data, pagination, err := m.MaterialRepository.Find(ctx, queryParams)
+	if err != nil {
+		return []schema.MaterialResponse{}, nil, err
+	}
+
+	res := mapper.ToMaterials(data)
+	return res, pagination, nil
+}
+
+// FindByID implements domain.MaterialService.
+func (m *materialServiceImpl) FindByID(ctx context.Context, id string) (*schema.MaterialResponse, error) {
+	data, err := m.MaterialRepository.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	res := mapper.ToMaterial(data)
+	return res, nil
+}
+
 // Create implements domain.MaterialService.
 func (m *materialServiceImpl) Create(ctx context.Context, schema *schema.MaterialRequest) error {
 
@@ -60,6 +82,25 @@ func (m *materialServiceImpl) Create(ctx context.Context, schema *schema.Materia
 	return nil
 }
 
+// Update implements domain.MaterialService.
+func (m *materialServiceImpl) Update(ctx context.Context, id string, schema *schema.MaterialUpdateRequest) error {
+	material, err := m.MaterialRepository.FindByID(ctx, id)
+
+	if err != nil {
+		return err
+	}
+
+	material.MaterialCategoryID = schema.CategoryID
+	material.Name = schema.Name
+	material.Description = schema.Description
+
+	_, err = m.MaterialRepository.Update(ctx, material)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Delete implements domain.MaterialService.
 func (m *materialServiceImpl) Delete(ctx context.Context, id string) error {
 	_, err := m.MaterialRepository.FindByID(ctx, id)
@@ -74,33 +115,6 @@ func (m *materialServiceImpl) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
-}
-
-// Find implements domain.MaterialService.
-func (m *materialServiceImpl) Find(ctx context.Context, queryParams *schema.MaterialQuery) ([]schema.MaterialResponse, *util.PaginationMeta, error) {
-	data, pagination, err := m.MaterialRepository.Find(ctx, queryParams)
-	if err != nil {
-		return []schema.MaterialResponse{}, nil, err
-	}
-
-	res := mapper.ToMaterials(data)
-	return res, pagination, nil
-}
-
-// FindByID implements domain.MaterialService.
-func (m *materialServiceImpl) FindByID(ctx context.Context, id string) (*schema.MaterialResponse, error) {
-	data, err := m.MaterialRepository.FindByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	res := mapper.ToMaterial(data)
-	return res, nil
-}
-
-// Update implements domain.MaterialService.
-func (m *materialServiceImpl) Update(ctx context.Context, id string, schema *schema.MaterialRequest) error {
-	panic("unimplemented")
 }
 
 // UploadImage implements domain.MaterialService.
