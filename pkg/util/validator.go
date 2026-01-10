@@ -32,11 +32,6 @@ func Validate(v *validator.Validate, req any) (map[string][]string, error) {
 			structName = val.Type().Name()
 		}
 
-		// for _, e := range err.(validator.ValidationErrors) {
-		// 	field := e.Field()
-		// 	translated := strings.ToLower(e.Translate(translator))
-		// 	messages[field] = append(messages[field], translated)
-		// }
 		for _, e := range err.(validator.ValidationErrors) {
 			fullNameSpace := e.Namespace()
 			customKey := strings.TrimPrefix(fullNameSpace, structName+".")
@@ -61,7 +56,6 @@ func RegisterValidatorTag(v *validator.Validate) {
 		}
 
 		return name
-		// return strings.Split(tag, ",")[0]
 	})
 }
 
