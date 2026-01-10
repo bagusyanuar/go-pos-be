@@ -23,10 +23,25 @@ func Validate(v *validator.Validate, req any) (map[string][]string, error) {
 	messages := make(map[string][]string)
 	if err != nil {
 		translator := GetTranslator()
+
+		val := reflect.ValueOf(req)
+		var structName string
+		if val.Kind() == reflect.Ptr {
+			structName = val.Elem().Type().Name()
+		} else {
+			structName = val.Type().Name()
+		}
+
+		// for _, e := range err.(validator.ValidationErrors) {
+		// 	field := e.Field()
+		// 	translated := strings.ToLower(e.Translate(translator))
+		// 	messages[field] = append(messages[field], translated)
+		// }
 		for _, e := range err.(validator.ValidationErrors) {
-			field := e.Field()
+			fullNameSpace := e.Namespace()
+			customKey := strings.TrimPrefix(fullNameSpace, structName+".")
 			translated := strings.ToLower(e.Translate(translator))
-			messages[field] = append(messages[field], translated)
+			messages[customKey] = append(messages[customKey], translated)
 		}
 	}
 	return messages, err
@@ -38,7 +53,15 @@ func RegisterValidatorTag(v *validator.Validate) {
 		if tag == "-" || tag == "" {
 			return field.Name
 		}
-		return strings.Split(tag, ",")[0]
+
+		name := strings.Split(tag, ",")[0]
+
+		if name == "" {
+			return field.Name
+		}
+
+		return name
+		// return strings.Split(tag, ",")[0]
 	})
 }
 

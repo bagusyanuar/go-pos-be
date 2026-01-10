@@ -15,13 +15,13 @@ type MaterialRequest struct {
 }
 
 type MaterialUnitRequest struct {
-	Units []MaterialUnit `json:"units" validate:"required"`
+	Units []MaterialUnit `json:"units" validate:"required,dive"`
 }
 
 type MaterialUnit struct {
-	UnitID         *uuid.UUID `json:"unit_id" validate:"required,uuid4"`
-	ConversionRate float64    `json:"conversion_rate"`
-	IsDefault      bool       `json:"is_default"`
+	UnitID         uuid.UUID `json:"unit_id" validate:"required,uuid4"`
+	ConversionRate float64   `json:"conversion_rate" validate:"gt=0"`
+	IsDefault      *bool     `json:"is_default" validate:"required,boolean"`
 }
 
 // Material Query Map

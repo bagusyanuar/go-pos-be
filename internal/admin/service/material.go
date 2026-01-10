@@ -158,7 +158,12 @@ func (m *materialServiceImpl) AppendUnit(ctx context.Context, id string, schema 
 	unitDefaultCount := 0
 
 	for _, u := range schema.Units {
-		if u.IsDefault {
+
+		if u.IsDefault == nil {
+			return exception.ErrUnitDefaultValue
+		}
+
+		if *u.IsDefault {
 			unitDefaultCount++
 			if u.ConversionRate != 1 {
 				return exception.ErrUnitConversionRate
@@ -173,16 +178,11 @@ func (m *materialServiceImpl) AppendUnit(ctx context.Context, id string, schema 
 	units := make([]entity.MaterialUnit, 0, len(schema.Units))
 	for _, v := range schema.Units {
 
-		// skip if unit id null
-		if v.UnitID == nil {
-			continue
-		}
-
 		unit := entity.MaterialUnit{
 			MaterialID:     material.ID,
-			UnitID:         *v.UnitID,
+			UnitID:         v.UnitID,
 			ConversionRate: v.ConversionRate,
-			IsDefault:      v.IsDefault,
+			IsDefault:      *v.IsDefault,
 		}
 		units = append(units, unit)
 	}
