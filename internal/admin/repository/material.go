@@ -19,8 +19,42 @@ type materialRepositoryImpl struct {
 }
 
 // AppendUnit implements domain.MaterialRepository.
-func (m *materialRepositoryImpl) AppendUnit(ctx context.Context, id string, e []entity.MaterialUnit) error {
-	panic("unimplemented")
+func (m *materialRepositoryImpl) AppendUnit(
+	ctx context.Context,
+	materialEntity *entity.Material,
+	e []entity.MaterialUnit,
+) error {
+	tx := m.DB.WithContext(ctx).Begin()
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	if len(e) > 0 {
+		for i := range e {
+			e[i].MaterialID = materialEntity.ID
+		}
+
+		if err := tx.Create(&e).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+
 }
 
 // Create implements domain.MateriaRepository.
@@ -43,17 +77,6 @@ func (m *materialRepositoryImpl) Create(ctx context.Context, e *entity.Material)
 		Create(&e).Error; err != nil {
 		tx.Rollback()
 		return nil, err
-	}
-
-	if len(e.Units) > 0 {
-		for i := range e.Units {
-			e.Units[i].MaterialID = e.ID
-		}
-
-		if err := tx.Create(&e.Units).Error; err != nil {
-			tx.Rollback()
-			return nil, err
-		}
 	}
 
 	if err := tx.Commit().Error; err != nil {

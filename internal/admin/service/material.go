@@ -41,49 +41,24 @@ func (m *materialServiceImpl) FindByID(ctx context.Context, id string) (*schema.
 }
 
 // Create implements domain.MaterialService.
-func (m *materialServiceImpl) Create(ctx context.Context, schema *schema.MaterialRequest) error {
-
-	unitDefaultCount := 0
-
-	for _, u := range schema.Units {
-		if u.IsDefault {
-			unitDefaultCount++
-			if u.ConversionRate != 1 {
-				return exception.ErrUnitConversionRate
-			}
-		}
-	}
-
-	if unitDefaultCount != 1 {
-		return exception.ErrUnitDefault
-	}
-
-	units := make([]entity.MaterialUnit, 0, len(schema.Units))
-	for _, v := range schema.Units {
-		unit := entity.MaterialUnit{
-			UnitID:         v.UnitID,
-			ConversionRate: v.ConversionRate,
-			IsDefault:      v.IsDefault,
-		}
-		units = append(units, unit)
-	}
+func (m *materialServiceImpl) Create(ctx context.Context, schema *schema.MaterialRequest) (*schema.MaterialCreateResponse, error) {
 
 	e := entity.Material{
 		MaterialCategoryID: schema.CategoryID,
 		Name:               schema.Name,
 		Description:        schema.Description,
-		Units:              units,
 	}
 
-	_, err := m.MaterialRepository.Create(ctx, &e)
+	material, err := m.MaterialRepository.Create(ctx, &e)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	res := mapper.ToMaterialCreate(material)
+	return res, nil
 }
 
 // Update implements domain.MaterialService.
-func (m *materialServiceImpl) Update(ctx context.Context, id string, schema *schema.MaterialUpdateRequest) error {
+func (m *materialServiceImpl) Update(ctx context.Context, id string, schema *schema.MaterialRequest) error {
 	material, err := m.MaterialRepository.FindByID(ctx, id)
 
 	if err != nil {
@@ -167,6 +142,53 @@ func (m *materialServiceImpl) UploadImage(ctx context.Context, id string, schema
 				minio.RemoveObjectOptions{},
 			)
 		}
+		return err
+	}
+
+	return nil
+}
+
+// AppendUnit implements domain.MaterialService.
+func (m *materialServiceImpl) AppendUnit(ctx context.Context, id string, schema *schema.MaterialUnitRequest) error {
+	material, err := m.MaterialRepository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	unitDefaultCount := 0
+
+	for _, u := range schema.Units {
+		if u.IsDefault {
+			unitDefaultCount++
+			if u.ConversionRate != 1 {
+				return exception.ErrUnitConversionRate
+			}
+		}
+	}
+
+	if unitDefaultCount != 1 {
+		return exception.ErrUnitDefault
+	}
+
+	units := make([]entity.MaterialUnit, 0, len(schema.Units))
+	for _, v := range schema.Units {
+
+		// skip if unit id null
+		if v.UnitID == nil {
+			continue
+		}
+
+		unit := entity.MaterialUnit{
+			MaterialID:     material.ID,
+			UnitID:         *v.UnitID,
+			ConversionRate: v.ConversionRate,
+			IsDefault:      v.IsDefault,
+		}
+		units = append(units, unit)
+	}
+
+	err = m.MaterialRepository.AppendUnit(ctx, material, units)
+	if err != nil {
 		return err
 	}
 

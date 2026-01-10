@@ -11,15 +11,15 @@ func ToMaterial(material *entity.Material) *schema.MaterialResponse {
 		return nil
 	}
 
-	category := new(schema.MaterialMaterialCategory)
+	category := new(schema.MaterialMaterialCategoryResponse)
 	if material.MaterialCategory != nil {
 		category.ID = material.MaterialCategory.ID.String()
 		category.Name = material.MaterialCategory.Name
 	}
 
-	units := make([]schema.MaterialUnit, 0, len(material.Units))
+	units := make([]schema.MaterialUnitResponse, 0, len(material.Units))
 	for _, v := range material.Units {
-		unit := schema.MaterialUnit{
+		unit := schema.MaterialUnitResponse{
 			UnitID:         v.UnitID.String(),
 			Name:           v.Unit.Name,
 			ConversionRate: v.ConversionRate,
@@ -48,4 +48,16 @@ func ToMaterials(materials []entity.Material) []schema.MaterialResponse {
 		}
 	}
 	return responses
+}
+
+func ToMaterialCreate(material *entity.Material) *schema.MaterialCreateResponse {
+	if material == nil {
+		return nil
+	}
+
+	return &schema.MaterialCreateResponse{
+		ID:          material.ID.String(),
+		Name:        material.Name,
+		Description: material.Description,
+	}
 }

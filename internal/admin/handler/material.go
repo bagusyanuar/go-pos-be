@@ -19,6 +19,7 @@ type (
 		Update(ctx *fiber.Ctx) error
 		Delete(ctx *fiber.Ctx) error
 		UploadImage(ctx *fiber.Ctx) error
+		AppendUnit(ctx *fiber.Ctx) error
 	}
 
 	materialHandlerImpl struct {
@@ -98,7 +99,7 @@ func (m *materialHandlerImpl) Create(ctx *fiber.Ctx) error {
 		})
 	}
 
-	err = m.MaterialService.Create(ctx.UserContext(), req)
+	material, err := m.MaterialService.Create(ctx.UserContext(), req)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"code":    fiber.StatusInternalServerError,
@@ -109,6 +110,7 @@ func (m *materialHandlerImpl) Create(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"code":    fiber.StatusCreated,
 		"message": "successfully create new material",
+		"data":    material,
 	})
 }
 
@@ -116,7 +118,7 @@ func (m *materialHandlerImpl) Create(ctx *fiber.Ctx) error {
 func (m *materialHandlerImpl) Update(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
-	req := new(schema.MaterialUpdateRequest)
+	req := new(schema.MaterialRequest)
 	if err := ctx.BodyParser(req); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"code":    fiber.StatusBadRequest,
@@ -209,6 +211,41 @@ func (m *materialHandlerImpl) UploadImage(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"code":    fiber.StatusCreated,
 		"message": "successfully create new material images",
+	})
+}
+
+// AppendUnit implements MaterialHandler.
+func (m *materialHandlerImpl) AppendUnit(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+
+	req := new(schema.MaterialUnitRequest)
+	if err := ctx.BodyParser(req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"code":    fiber.StatusBadRequest,
+			"message": exception.ErrInvalidRequestBody.Error(),
+		})
+	}
+
+	messages, err := util.Validate(m.Config.Validator, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"code":    fiber.StatusUnprocessableEntity,
+			"message": exception.ErrValidation.Error(),
+			"errors":  messages,
+		})
+	}
+
+	err = m.MaterialService.AppendUnit(ctx.UserContext(), id, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"code":    fiber.StatusInternalServerError,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":    fiber.StatusOK,
+		"message": "successfully append units",
 	})
 }
 
