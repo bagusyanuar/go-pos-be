@@ -19,7 +19,7 @@ type (
 		Update(ctx *fiber.Ctx) error
 		Delete(ctx *fiber.Ctx) error
 		UploadImage(ctx *fiber.Ctx) error
-		AppendUnit(ctx *fiber.Ctx) error
+		ManageUnit(ctx *fiber.Ctx) error
 		DeleteUnit(ctx *fiber.Ctx) error
 	}
 
@@ -216,7 +216,7 @@ func (m *materialHandlerImpl) UploadImage(ctx *fiber.Ctx) error {
 }
 
 // AppendUnit implements MaterialHandler.
-func (m *materialHandlerImpl) AppendUnit(ctx *fiber.Ctx) error {
+func (m *materialHandlerImpl) ManageUnit(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
 	req := new(schema.MaterialUnitRequest)
@@ -236,7 +236,7 @@ func (m *materialHandlerImpl) AppendUnit(ctx *fiber.Ctx) error {
 		})
 	}
 
-	err = m.MaterialService.AppendUnit(ctx.UserContext(), id, req)
+	err = m.MaterialService.ManageUnit(ctx.UserContext(), id, req)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"code":    fiber.StatusInternalServerError,

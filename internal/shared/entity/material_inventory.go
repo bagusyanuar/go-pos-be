@@ -11,7 +11,7 @@ import (
 type MaterialInventory struct {
 	ID         uuid.UUID
 	MaterialID *uuid.UUID
-	Quantity   decimal.Decimal `gorm:"type:numeric(15,2);default:0;"`
+	Quantity   decimal.Decimal `gorm:"type:numeric(15,3);default:0;"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	Material   *Material `gorm:"foreignKey:MaterialID"`

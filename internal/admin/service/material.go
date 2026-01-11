@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/mapper"
@@ -11,7 +12,9 @@ import (
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
 	"github.com/bagusyanuar/go-pos-be/pkg/exception"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	"github.com/shopspring/decimal"
 )
 
 type materialServiceImpl struct {
@@ -149,65 +152,115 @@ func (m *materialServiceImpl) UploadImage(ctx context.Context, id string, schema
 	return nil
 }
 
-// AppendUnit implements domain.MaterialService.
-func (m *materialServiceImpl) AppendUnit(ctx context.Context, id string, schema *schema.MaterialUnitRequest) error {
+// ManageUnit implements domain.MaterialService.
+func (m *materialServiceImpl) ManageUnit(ctx context.Context, id string, schema *schema.MaterialUnitRequest) error {
 	// 1. Ambil data bahan baku & validasi berdasarkan id
 	material, err := m.MaterialRepository.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	isAppend := schema.Type == constant.TypeAppend
-	unitDefaultCount := 0
+	// --- 2. Validasi Umum dan Pemetaan ---
 
-	// 2. Validasi jika action type nya append maka cek terlebih dahulu apakah data sebelumnya mempunyai is default
-	if isAppend {
-		existingUnits := material.Units
-		for _, eU := range existingUnits {
-			if eU.IsDefault {
-				unitDefaultCount++
-			}
+	newUnits := make([]entity.MaterialUnit, 0, len(schema.Units))
+	unitDefaultCountInRequest := 0
+	var unitIDOldDefault uuid.UUID // Untuk menyimpan ID unit default lama
+
+	// Cari ID unit default lama (jika ada)
+	for _, eU := range material.Units {
+		if eU.IsDefault {
+			unitIDOldDefault = eU.UnitID
+			break
 		}
 	}
 
-	// 3. Validasi schema yang baru
+	// Validasi data di Request dan hitung default baru
 	for _, u := range schema.Units {
-
 		if u.IsDefault == nil {
 			return exception.ErrUnitDefaultValue
 		}
 
 		if *u.IsDefault {
-			unitDefaultCount++
-			if u.ConversionRate != 1 {
+			unitDefaultCountInRequest++
+			// Di mode Calibrate, Rate boleh berapapun. Di mode Create/Append, wajib 1.
+			// Namun, karena ini adalah data BARU yang akan jadi default, ConversionRate-nya harus 1
+			if u.ConversionRate != 1 && schema.Type != constant.TypeCalibrate {
 				return exception.ErrUnitConversionRate
 			}
 		}
-	}
 
-	// 4. Validasi jika action type nya create dan is default != 1 maka return error
-	if !isAppend && unitDefaultCount != 1 {
-		return exception.ErrUnitDefault
-	}
-
-	units := make([]entity.MaterialUnit, 0, len(schema.Units))
-	for _, v := range schema.Units {
-
-		unit := entity.MaterialUnit{
+		// Mapping ke Entity (diperlukan untuk semua tipe)
+		newUnits = append(newUnits, entity.MaterialUnit{
 			MaterialID:     material.ID,
-			UnitID:         v.UnitID,
-			ConversionRate: v.ConversionRate,
-			IsDefault:      *v.IsDefault,
+			UnitID:         u.UnitID,
+			ConversionRate: u.ConversionRate,
+			IsDefault:      *u.IsDefault,
+		})
+	}
+
+	// --- 3. Logika Flow Control berdasarkan ActionType ---
+
+	switch schema.Type {
+	case constant.TypeCreate:
+		// Cek: Create awal WAJIB ada tepat 1 default
+		if unitDefaultCountInRequest != 1 {
+			return exception.ErrUnitDefault
 		}
-		units = append(units, unit)
-	}
+		// Eksekusi Repository: Hapus semua unit lama lalu ganti dengan unit baru
+		return m.MaterialRepository.AppendUnit(ctx, material, newUnits)
 
-	err = m.MaterialRepository.AppendUnit(ctx, material, units)
-	if err != nil {
-		return err
-	}
+	case constant.TypeAppend:
+		// Cek: Append DILARANG mengirim unit default baru (karena ada endpoint Calibrate)
+		if unitDefaultCountInRequest > 0 {
+			return errors.New("penggantian unit default harus melalui aksi 'calibrate'")
+		}
+		// Eksekusi Repository: Tambahkan unit baru (Upsert)
+		return m.MaterialRepository.AppendUnit(ctx, material, newUnits)
 
-	return nil
+	case constant.TypeCalibrate:
+		// Cek: Calibrate WAJIB mengirim semua unit (existing + new) dan harus ada tepat 1 default
+		if unitDefaultCountInRequest != 1 {
+			return exception.ErrUnitDefault // Harus ada 1 unit default
+		}
+
+		// Logika Bisnis: Hitung Konversi Stok
+
+		// Cari rate unit default LAMA di dalam data input BARU
+		var rateOfOldUnitInNewBasis decimal.Decimal
+		foundOldUnit := false
+		for _, u := range newUnits {
+			if u.UnitID == unitIDOldDefault {
+				rateOfOldUnitInNewBasis = decimal.NewFromFloat(u.ConversionRate)
+				foundOldUnit = true
+				break
+			}
+		}
+
+		if !foundOldUnit {
+			return errors.New("unit default lama harus disertakan dalam daftar kalibrasi")
+		}
+
+		// Hitung Stok Baru
+		var inventoryUpdate map[string]any
+		if material.Inventory != nil {
+			// StokBaru = StokLama * RateBaru Unit Lama terhadap Basis Baru
+			newQuantity := material.Inventory.Quantity.Mul(rateOfOldUnitInNewBasis).Round(3)
+			inventoryUpdate = map[string]any{
+				"quantity": newQuantity,
+				// Tambahkan field update_at agar ada timestamp perubahan stok
+			}
+		} else {
+			// Jika material tidak punya inventory, anggap quantity 0
+			inventoryUpdate = map[string]any{"quantity": decimal.Zero}
+		}
+
+		// Eksekusi Repository: Update Stok dan Unit Kalibrasi
+		// Kita gunakan fungsi repository yang sudah kita buat sebelumnya
+		return m.MaterialRepository.CalibrateUnit(ctx, material.ID.String(), inventoryUpdate, newUnits)
+
+	default:
+		return errors.New("tipe aksi tidak valid")
+	}
 }
 
 // DeleteUnit implements domain.MaterialService.

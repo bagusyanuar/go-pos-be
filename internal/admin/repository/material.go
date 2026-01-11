@@ -121,6 +121,7 @@ func (m *materialRepositoryImpl) Find(ctx context.Context, queryParams *schema.M
 	if err := tx.
 		Preload("MaterialCategory").
 		Preload("Units.Unit").
+		Preload("Inventory").
 		Scopes(
 			m.filterByParam(queryParams.Param),
 			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
@@ -143,6 +144,7 @@ func (m *materialRepositoryImpl) FindByID(ctx context.Context, id string) (*enti
 	if err := tx.
 		Preload("MaterialCategory").
 		Preload("Units.Unit").
+		Preload("Inventory").
 		Where("id = ?", id).
 		First(material).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -208,6 +210,53 @@ func (m *materialRepositoryImpl) DeleteUnit(ctx context.Context, materialID stri
 	}
 
 	return nil
+}
+
+// CalibrateUnit implements domain.MaterialRepository.
+func (m *materialRepositoryImpl) CalibrateUnit(
+	ctx context.Context,
+	materialID string,
+	inventoryMap map[string]any,
+	units []entity.MaterialUnit,
+) error {
+	tx := m.DB.WithContext(ctx).Begin()
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	// A. Update Inventory (Stok)
+	if err := tx.Model(&entity.MaterialInventory{}).
+		Where("material_id = ?", materialID).
+		Updates(inventoryMap).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// B. Update Semua Unit Kalibrasi (Bulk Update)
+	for _, u := range units {
+		// Karena Service Layer sudah menjamin is_default dan conversion_rate akurat
+		updateData := map[string]any{
+			"conversion_rate": u.ConversionRate,
+			"is_default":      u.IsDefault,
+		}
+
+		if err := tx.Model(&entity.MaterialUnit{}).
+			Where("material_id = ? AND unit_id = ?", materialID, u.UnitID).
+			Updates(updateData).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit().Error
 }
 
 func (m *materialRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gorm.DB {

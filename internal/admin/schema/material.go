@@ -16,7 +16,7 @@ type MaterialRequest struct {
 }
 
 type MaterialUnitRequest struct {
-	Type  constant.MaterialUnitActionType `json:"type" validate:"required,oneof=create append"`
+	Type  constant.MaterialUnitActionType `json:"type" validate:"required,oneof=create append calibrate"`
 	Units []MaterialUnit                  `json:"units" validate:"required,dive"`
 }
 

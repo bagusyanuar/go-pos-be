@@ -68,11 +68,20 @@ func ToMaterialInventory(material *entity.Material) *schema.MaterialInventoryRes
 		remaining = remaining.Sub(qty.Mul(rate))
 	}
 
+	var defaultUnitName string
+	for _, u := range material.Units {
+		if u.IsDefault {
+			defaultUnitName = u.Unit.Name
+			break
+		}
+	}
+
 	return &schema.MaterialInventoryResponse{
 		ID:          material.ID.String(),
 		Name:        material.Name,
 		Description: material.Description,
 		Quantity:    quantity,
+		Unit:        defaultUnitName,
 		CreatedAt:   material.CreatedAt.Format(constant.BaseDateTimeLayout),
 		UpdatedAt:   material.UpdatedAt.Format(constant.BaseDateTimeLayout),
 		Category:    category,
