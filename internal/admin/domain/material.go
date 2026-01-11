@@ -17,6 +17,7 @@ type (
 		Delete(ctx context.Context, id string) error
 		UploadImage(ctx context.Context, e []entity.MaterialImage) error
 		AppendUnit(ctx context.Context, materialEntity *entity.Material, e []entity.MaterialUnit) error
+		DeleteUnit(ctx context.Context, materialID string, unitID string) error
 	}
 
 	MaterialService interface {
@@ -27,5 +28,6 @@ type (
 		Delete(ctx context.Context, id string) error
 		UploadImage(ctx context.Context, id string, schema *schema.MaterialImageRequest) error
 		AppendUnit(ctx context.Context, id string, schema *schema.MaterialUnitRequest) error
+		DeleteUnit(ctx context.Context, materialID string, unitID string) error
 	}
 )

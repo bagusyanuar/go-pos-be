@@ -39,14 +39,21 @@ func ToMaterialInventory(material *entity.Material) *schema.MaterialInventoryRes
 	})
 
 	remaining := globalStok
-	for _, v := range material.Units {
+	for i, v := range material.Units {
 
 		if v.ConversionRate <= 0 {
 			continue
 		}
 
 		rate := decimal.NewFromFloat(v.ConversionRate)
-		qty := remaining.Div(rate).Floor()
+
+		// do flooring if not last conversion rate
+		var qty decimal.Decimal
+		if i == len(material.Units)-1 {
+			qty = remaining.Div(rate)
+		} else {
+			qty = remaining.Div(rate).Floor()
+		}
 
 		qtyFloat, _ := qty.Float64()
 		unit := schema.MaterialInventoryUnit{

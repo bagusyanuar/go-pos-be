@@ -20,6 +20,7 @@ type (
 		Delete(ctx *fiber.Ctx) error
 		UploadImage(ctx *fiber.Ctx) error
 		AppendUnit(ctx *fiber.Ctx) error
+		DeleteUnit(ctx *fiber.Ctx) error
 	}
 
 	materialHandlerImpl struct {
@@ -246,6 +247,25 @@ func (m *materialHandlerImpl) AppendUnit(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"code":    fiber.StatusOK,
 		"message": "successfully append units",
+	})
+}
+
+// DeleteUnit implements MaterialHandler.
+func (m *materialHandlerImpl) DeleteUnit(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	unitID := ctx.Params("unitID")
+
+	err := m.MaterialService.DeleteUnit(ctx.UserContext(), id, unitID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"code":    fiber.StatusInternalServerError,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":    fiber.StatusOK,
+		"message": "successfully delete material unit",
 	})
 }
 

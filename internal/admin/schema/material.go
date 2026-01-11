@@ -3,6 +3,7 @@ package schema
 import (
 	"mime/multipart"
 
+	"github.com/bagusyanuar/go-pos-be/internal/shared/constant"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
 	"github.com/google/uuid"
 )
@@ -15,7 +16,8 @@ type MaterialRequest struct {
 }
 
 type MaterialUnitRequest struct {
-	Units []MaterialUnit `json:"units" validate:"required,dive"`
+	Type  constant.MaterialUnitActionType `json:"type" validate:"required,oneof=create append"`
+	Units []MaterialUnit                  `json:"units" validate:"required,dive"`
 }
 
 type MaterialUnit struct {

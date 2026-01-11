@@ -8,8 +8,6 @@ var (
 	ErrInvalidQueryParameters = errors.New("invalid query parameters")
 	ErrInvalidRequestBody     = errors.New("invalid request body")
 	ErrValidation             = errors.New("validation error")
-	ErrUnitConversionRate     = errors.New("default unit conversion rate must be 1")
-	ErrUnitDefault            = errors.New("unit must have exactly one default unit")
-	ErrUnitDefaultValue       = errors.New("is default must have boolean value")
-	ErrNoFileAttched          = errors.New("no file attached")
+
+	ErrNoFileAttched = errors.New("no file attached")
 )

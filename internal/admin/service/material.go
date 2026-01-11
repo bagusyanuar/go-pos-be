@@ -7,6 +7,7 @@ import (
 	"github.com/bagusyanuar/go-pos-be/internal/admin/mapper"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
+	"github.com/bagusyanuar/go-pos-be/internal/shared/constant"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
 	"github.com/bagusyanuar/go-pos-be/pkg/exception"
 	"github.com/bagusyanuar/go-pos-be/pkg/util"
@@ -150,13 +151,26 @@ func (m *materialServiceImpl) UploadImage(ctx context.Context, id string, schema
 
 // AppendUnit implements domain.MaterialService.
 func (m *materialServiceImpl) AppendUnit(ctx context.Context, id string, schema *schema.MaterialUnitRequest) error {
+	// 1. Ambil data bahan baku & validasi berdasarkan id
 	material, err := m.MaterialRepository.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
+	isAppend := schema.Type == constant.TypeAppend
 	unitDefaultCount := 0
 
+	// 2. Validasi jika action type nya append maka cek terlebih dahulu apakah data sebelumnya mempunyai is default
+	if isAppend {
+		existingUnits := material.Units
+		for _, eU := range existingUnits {
+			if eU.IsDefault {
+				unitDefaultCount++
+			}
+		}
+	}
+
+	// 3. Validasi schema yang baru
 	for _, u := range schema.Units {
 
 		if u.IsDefault == nil {
@@ -171,7 +185,8 @@ func (m *materialServiceImpl) AppendUnit(ctx context.Context, id string, schema 
 		}
 	}
 
-	if unitDefaultCount != 1 {
+	// 4. Validasi jika action type nya create dan is default != 1 maka return error
+	if !isAppend && unitDefaultCount != 1 {
 		return exception.ErrUnitDefault
 	}
 
@@ -188,6 +203,16 @@ func (m *materialServiceImpl) AppendUnit(ctx context.Context, id string, schema 
 	}
 
 	err = m.MaterialRepository.AppendUnit(ctx, material, units)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteUnit implements domain.MaterialService.
+func (m *materialServiceImpl) DeleteUnit(ctx context.Context, materialID string, unitID string) error {
+	err := m.MaterialRepository.DeleteUnit(ctx, materialID, unitID)
 	if err != nil {
 		return err
 	}

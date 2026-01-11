@@ -180,6 +180,36 @@ func (m *materialRepositoryImpl) UploadImage(ctx context.Context, e []entity.Mat
 	return nil
 }
 
+// DeleteUnit implements domain.MaterialRepository.
+func (m *materialRepositoryImpl) DeleteUnit(ctx context.Context, materialID string, unitID string) error {
+	tx := m.DB.WithContext(ctx)
+	var materialUnit entity.MaterialUnit
+
+	err := tx.Where("material_id = ? AND unit_id = ?", materialID, unitID).First(&materialUnit).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return exception.ErrRecordNotFound
+		}
+		return err
+	}
+
+	if materialUnit.IsDefault {
+		return exception.ErrDeleteDefaultUnit
+	}
+
+	result := tx.Delete(&materialUnit)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return exception.ErrRecordNotFound
+	}
+
+	return nil
+}
+
 func (m *materialRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gorm.DB {
 	return func(tx *gorm.DB) *gorm.DB {
 		if param == "" {
