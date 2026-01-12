@@ -1,4 +1,4 @@
-package repository
+package repositories
 
 import (
 	"context"
@@ -13,13 +13,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type productCategoryRepositoryImpl struct {
+type unitRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-// Create implements ProductCategoryRepository.
-func (p *productCategoryRepositoryImpl) Create(ctx context.Context, e *entity.ProductCategory) (*entity.ProductCategory, error) {
-	tx := p.DB.WithContext(ctx)
+// Create implements domain.UnitRepository.
+func (u *unitRepositoryImpl) Create(ctx context.Context, e *entity.Unit) (*entity.Unit, error) {
+	tx := u.DB.WithContext(ctx)
 	if err := tx.Create(&e).Error; err != nil {
 		return nil, err
 	}
@@ -27,11 +27,11 @@ func (p *productCategoryRepositoryImpl) Create(ctx context.Context, e *entity.Pr
 	return e, nil
 }
 
-// Delete implements ProductCategoryRepository.
-func (p *productCategoryRepositoryImpl) Delete(ctx context.Context, id string) error {
-	tx := p.DB.WithContext(ctx)
+// Delete implements domain.UnitRepository.
+func (u *unitRepositoryImpl) Delete(ctx context.Context, id string) error {
+	tx := u.DB.WithContext(ctx)
 
-	result := tx.Delete(&entity.ProductCategory{}, "id = ?", id)
+	result := tx.Delete(&entity.Unit{}, "id = ?", id)
 
 	if result.Error != nil {
 		return result.Error
@@ -44,25 +44,25 @@ func (p *productCategoryRepositoryImpl) Delete(ctx context.Context, id string) e
 	return nil
 }
 
-// FindAll implements ProductCategoryRepository.
-func (p *productCategoryRepositoryImpl) Find(
+// Find implements domain.UnitRepository.
+func (u *unitRepositoryImpl) Find(
 	ctx context.Context,
-	queryParams *schema.ProductCategoryQuery,
+	queryParams *schema.UnitQuery,
 ) (
-	[]entity.ProductCategory,
+	[]entity.Unit,
 	*util.PaginationMeta,
 	error,
 ) {
-	tx := p.DB.WithContext(ctx)
+	tx := u.DB.WithContext(ctx)
 
 	var totalItems int64
-	var data []entity.ProductCategory
+	var data []entity.Unit
 
 	if err := tx.
-		Model(&entity.ProductCategory{}).
+		Model(&entity.Unit{}).
 		Count(&totalItems).
 		Error; err != nil {
-		return []entity.ProductCategory{}, nil, err
+		return []entity.Unit{}, nil, err
 	}
 
 	sortFieldMap := map[string]string{
@@ -74,39 +74,39 @@ func (p *productCategoryRepositoryImpl) Find(
 
 	if err := tx.
 		Scopes(
-			p.filterByParam(queryParams.Param),
+			u.filterByParam(queryParams.Param),
 			util.SortScope(sort, order),
 			util.Paginate(tx, queryParams.Page, queryParams.PageSize),
 		).
 		Find(&data).
 		Error; err != nil {
-		return []entity.ProductCategory{}, nil, err
+		return []entity.Unit{}, nil, err
 	}
 
 	pagination := util.MakePagination(queryParams.Page, queryParams.PageSize, totalItems)
 	return data, &pagination, nil
 }
 
-// FindByID implements ProductCategoryRepository.
-func (p *productCategoryRepositoryImpl) FindByID(ctx context.Context, id string) (*entity.ProductCategory, error) {
-	tx := p.DB.WithContext(ctx)
+// FindByID implements domain.UnitRepository.
+func (u *unitRepositoryImpl) FindByID(ctx context.Context, id string) (*entity.Unit, error) {
+	tx := u.DB.WithContext(ctx)
 
-	productCategory := new(entity.ProductCategory)
+	unit := new(entity.Unit)
 
 	if err := tx.Where("id = ?", id).
-		First(productCategory).Error; err != nil {
+		First(unit).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, exception.ErrRecordNotFound
 		}
 		return nil, err
 	}
 
-	return productCategory, nil
+	return unit, nil
 }
 
-// Update implements ProductCategoryRepository.
-func (p *productCategoryRepositoryImpl) Update(ctx context.Context, e *entity.ProductCategory) (*entity.ProductCategory, error) {
-	tx := p.DB.WithContext(ctx)
+// Update implements domain.UnitRepository.
+func (u *unitRepositoryImpl) Update(ctx context.Context, e *entity.Unit) (*entity.Unit, error) {
+	tx := u.DB.WithContext(ctx)
 
 	if err := tx.Save(e).Error; err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (p *productCategoryRepositoryImpl) Update(ctx context.Context, e *entity.Pr
 	return e, nil
 }
 
-func (p *productCategoryRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gorm.DB {
+func (m *unitRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gorm.DB {
 	return func(tx *gorm.DB) *gorm.DB {
 		if param == "" {
 			return tx
@@ -127,8 +127,8 @@ func (p *productCategoryRepositoryImpl) filterByParam(param string) func(*gorm.D
 	}
 }
 
-func NewProductCategoryRepository(db *gorm.DB) domain.ProductCategoryRepository {
-	return &productCategoryRepositoryImpl{
+func NewUnitRepository(db *gorm.DB) domain.UnitRepository {
+	return &unitRepositoryImpl{
 		DB: db,
 	}
 }
