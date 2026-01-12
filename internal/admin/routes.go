@@ -48,5 +48,6 @@ func RegisterRoutes(
 
 	materialInventory := privateApi.Group("/material-inventory")
 	materialInventory.Get("/", handlers.MaterialInventory.Find)
+	materialInventory.Get("/:id", handlers.MaterialInventory.FindByID)
 
 }

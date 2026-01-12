@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
@@ -12,9 +14,6 @@ type (
 	MaterialInventoryHandler interface {
 		Find(ctx *fiber.Ctx) error
 		FindByID(ctx *fiber.Ctx) error
-		Create(ctx *fiber.Ctx) error
-		Update(ctx *fiber.Ctx) error
-		Delete(ctx *fiber.Ctx) error
 	}
 
 	materialInventoryHandlerImpl struct {
@@ -22,16 +21,6 @@ type (
 		Config                   *config.AppConfig
 	}
 )
-
-// Create implements MaterialInventoryHandler.
-func (m *materialInventoryHandlerImpl) Create(ctx *fiber.Ctx) error {
-	panic("unimplemented")
-}
-
-// Delete implements MaterialInventoryHandler.
-func (m *materialInventoryHandlerImpl) Delete(ctx *fiber.Ctx) error {
-	panic("unimplemented")
-}
 
 // Find implements MaterialInventoryHandler.
 func (m *materialInventoryHandlerImpl) Find(ctx *fiber.Ctx) error {
@@ -62,12 +51,27 @@ func (m *materialInventoryHandlerImpl) Find(ctx *fiber.Ctx) error {
 
 // FindByID implements MaterialInventoryHandler.
 func (m *materialInventoryHandlerImpl) FindByID(ctx *fiber.Ctx) error {
-	panic("unimplemented")
-}
+	id := ctx.Params("id")
 
-// Update implements MaterialInventoryHandler.
-func (m *materialInventoryHandlerImpl) Update(ctx *fiber.Ctx) error {
-	panic("unimplemented")
+	data, err := m.MaterialInventoryService.FindByID(ctx.UserContext(), id)
+	if err != nil {
+		if errors.Is(err, exception.ErrRecordNotFound) {
+			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"code":    fiber.StatusNotFound,
+				"message": err.Error(),
+			})
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"code":    fiber.StatusInternalServerError,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":    fiber.StatusOK,
+		"message": "successfully get material inventory",
+		"data":    data,
+	})
 }
 
 func NewMaterialInventoryHandler(
