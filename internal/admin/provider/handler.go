@@ -6,6 +6,7 @@ import (
 )
 
 type Handlers struct {
+	Supplier          handler.SupplierHandler
 	ProductCategory   handler.ProductCategoryHandler
 	MaterialCategory  handler.MaterialCategoryHandler
 	Unit              handler.UnitHandler
@@ -18,6 +19,7 @@ func NewHandlers(
 	config *config.AppConfig,
 ) *Handlers {
 	return &Handlers{
+		Supplier:          handler.NewSupplierHandler(services.Supplier, config),
 		ProductCategory:   handler.NewProductCategoryHandler(services.ProductCategory, config),
 		MaterialCategory:  handler.NewMaterialCategoryHandler(services.MaterialCategory, config),
 		Unit:              handler.NewUnitHandler(services.Unit, config),
