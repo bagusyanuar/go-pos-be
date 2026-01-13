@@ -16,13 +16,20 @@ type SupplierQuery struct {
 
 // Supplier Response Schema
 type SupplierResponse struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	ID        string                    `json:"id"`
+	Name      string                    `json:"name"`
+	CreatedAt string                    `json:"created_at"`
+	UpdatedAt string                    `json:"updated_at"`
+	Contacts  []SupplierContactResponse `json:"contacts"`
 }
 
 type SupplierCreateResponse struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type SupplierContactResponse struct {
+	ID    string `json:"id"`
+	Type  string `json:"type"`
+	Value string `json:"value"`
 }

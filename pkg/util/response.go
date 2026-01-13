@@ -5,7 +5,7 @@ import "github.com/gofiber/fiber/v2"
 type APIResponse[T any] struct {
 	Code    int             `json:"code"`
 	Message string          `json:"message"`
-	Data    T               `json:"data"`
+	Data    T               `json:"data,omitempty"`
 	Meta    *PaginationMeta `json:"meta,omitempty"`
 	Errors  any             `json:"errors,omitempty"`
 }

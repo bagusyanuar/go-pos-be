@@ -11,11 +11,22 @@ func ToSupplier(supplier *entity.Supplier) *schema.SupplierResponse {
 		return nil
 	}
 
+	contacts := make([]schema.SupplierContactResponse, 0, len(supplier.Contacts))
+	for _, c := range supplier.Contacts {
+		contact := schema.SupplierContactResponse{
+			ID:    c.ID.String(),
+			Type:  c.Type,
+			Value: c.Value,
+		}
+		contacts = append(contacts, contact)
+	}
+
 	return &schema.SupplierResponse{
 		ID:        supplier.ID.String(),
 		Name:      supplier.Name,
 		CreatedAt: supplier.CreatedAt.Format(constant.BaseDateTimeLayout),
 		UpdatedAt: supplier.UpdatedAt.Format(constant.BaseDateTimeLayout),
+		Contacts:  contacts,
 	}
 }
 
