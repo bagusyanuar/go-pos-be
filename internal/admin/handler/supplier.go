@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/bagusyanuar/go-pos-be/internal/admin/domain"
+	"github.com/bagusyanuar/go-pos-be/internal/admin/mapper"
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/pkg/exception"
@@ -89,7 +90,7 @@ func (s *supplierHandlerImpl) Find(ctx *fiber.Ctx) error {
 		})
 	}
 
-	data, pagination, err := s.SupplierService.Find(ctx.UserContext(), queryParams)
+	data, totalItems, err := s.SupplierService.Find(ctx.UserContext(), queryParams)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"code":    fiber.StatusInternalServerError,
@@ -97,10 +98,13 @@ func (s *supplierHandlerImpl) Find(ctx *fiber.Ctx) error {
 		})
 	}
 
+	suppliers := mapper.ToSuppliers(data)
+	pagination := util.MakePagination(queryParams.Page, queryParams.PageSize, totalItems)
+
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"code":    fiber.StatusOK,
 		"message": "successfully get suppliers",
-		"data":    data,
+		"data":    suppliers,
 		"meta":    pagination,
 	})
 }

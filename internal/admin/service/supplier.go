@@ -8,7 +8,6 @@ import (
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/config"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
-	"github.com/bagusyanuar/go-pos-be/pkg/util"
 )
 
 type supplierServiceImpl struct {
@@ -48,14 +47,8 @@ func (s *supplierServiceImpl) Delete(ctx context.Context, id string) error {
 }
 
 // Find implements domain.SupplierService.
-func (s *supplierServiceImpl) Find(ctx context.Context, queryParams *schema.SupplierQuery) ([]schema.SupplierResponse, *util.PaginationMeta, error) {
-	data, pagination, err := s.SupplierRepository.Find(ctx, queryParams)
-	if err != nil {
-		return []schema.SupplierResponse{}, nil, err
-	}
-
-	response := mapper.ToSuppliers(data)
-	return response, pagination, nil
+func (s *supplierServiceImpl) Find(ctx context.Context, queryParams *schema.SupplierQuery) ([]entity.Supplier, int64, error) {
+	return s.SupplierRepository.Find(ctx, queryParams)
 }
 
 // FindByID implements domain.SupplierService.

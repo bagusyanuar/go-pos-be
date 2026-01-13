@@ -50,7 +50,7 @@ func (s *supplierRepositoryImpl) Find(
 	queryParams *schema.SupplierQuery,
 ) (
 	[]entity.Supplier,
-	*util.PaginationMeta,
+	int64,
 	error,
 ) {
 	tx := s.DB.WithContext(ctx)
@@ -62,7 +62,7 @@ func (s *supplierRepositoryImpl) Find(
 		Model(&entity.Supplier{}).
 		Count(&totalItems).
 		Error; err != nil {
-		return []entity.Supplier{}, nil, err
+		return []entity.Supplier{}, 0, err
 	}
 
 	sortFieldMap := map[string]string{
@@ -85,15 +85,15 @@ func (s *supplierRepositoryImpl) Find(
 		).
 		Find(&data).
 		Error; err != nil {
-		return []entity.Supplier{}, nil, err
+		return []entity.Supplier{}, 0, err
 	}
 
-	pagination := util.MakePagination(
-		queryParams.Page,
-		queryParams.PageSize,
-		totalItems,
-	)
-	return data, &pagination, nil
+	// pagination := util.MakePagination(
+	// 	queryParams.Page,
+	// 	queryParams.PageSize,
+	// 	totalItems,
+	// )
+	return data, totalItems, nil
 }
 
 // FindByID implements domain.SupplierRepository.

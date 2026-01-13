@@ -5,13 +5,12 @@ import (
 
 	"github.com/bagusyanuar/go-pos-be/internal/admin/schema"
 	"github.com/bagusyanuar/go-pos-be/internal/shared/entity"
-	"github.com/bagusyanuar/go-pos-be/pkg/util"
 )
 
 type (
 	// 1. Repository Interface for Supplier
 	SupplierRepository interface {
-		Find(ctx context.Context, queryParams *schema.SupplierQuery) ([]entity.Supplier, *util.PaginationMeta, error)
+		Find(ctx context.Context, queryParams *schema.SupplierQuery) ([]entity.Supplier, int64, error)
 		FindByID(ctx context.Context, id string) (*entity.Supplier, error)
 		Create(ctx context.Context, supplierEntity *entity.Supplier) (*entity.Supplier, error)
 		Update(ctx context.Context, supplierEnityty *entity.Supplier) (*entity.Supplier, error)
@@ -20,7 +19,7 @@ type (
 
 	// 2. Service Interface for Supplier
 	SupplierService interface {
-		Find(ctx context.Context, queryParams *schema.SupplierQuery) ([]schema.SupplierResponse, *util.PaginationMeta, error)
+		Find(ctx context.Context, queryParams *schema.SupplierQuery) ([]entity.Supplier, int64, error)
 		FindByID(ctx context.Context, id string) (*schema.SupplierResponse, error)
 		Create(ctx context.Context, schema *schema.SupplierRequest) (*schema.SupplierCreateResponse, error)
 		Update(ctx context.Context, id string, schema *schema.SupplierRequest) error
