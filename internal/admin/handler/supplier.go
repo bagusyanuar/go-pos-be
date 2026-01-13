@@ -75,15 +75,21 @@ func (s *supplierHandlerImpl) Delete(ctx *fiber.Ctx) error {
 
 	err := s.SupplierService.Delete(ctx.UserContext(), id)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"code":    fiber.StatusInternalServerError,
-			"message": err.Error(),
+		if errors.Is(err, exception.ErrRecordNotFound) {
+			return ctx.Status(fiber.StatusNotFound).JSON(util.APIResponse[any]{
+				Code:    fiber.StatusNotFound,
+				Message: err.Error(),
+			})
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(util.APIResponse[any]{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
 		})
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-		"code":    fiber.StatusOK,
-		"message": "successfully delete supplier",
+	return ctx.Status(fiber.StatusOK).JSON(util.APIResponse[any]{
+		Code:    fiber.StatusOK,
+		Message: "successfully delete supplier",
 	})
 }
 
@@ -147,33 +153,41 @@ func (s *supplierHandlerImpl) Update(ctx *fiber.Ctx) error {
 
 	request := new(schema.SupplierRequest)
 	if err := ctx.BodyParser(request); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"code":    fiber.StatusBadRequest,
-			"message": exception.ErrInvalidRequestBody.Error(),
-		})
+		return ctx.
+			Status(fiber.StatusBadRequest).
+			JSON(util.APIResponse[any]{
+				Code:    fiber.StatusBadRequest,
+				Message: exception.ErrInvalidRequestBody.Error(),
+			})
 	}
 
 	messages, err := util.Validate(s.Config.Validator, request)
 	if err != nil {
-		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-			"code":    fiber.StatusUnprocessableEntity,
-			"message": exception.ErrValidation.Error(),
-			"errors":  messages,
-		})
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(util.APIResponse[any]{
+				Code:    fiber.StatusUnprocessableEntity,
+				Message: exception.ErrValidation.Error(),
+				Errors:  messages,
+			})
 	}
 
 	err = s.SupplierService.Update(ctx.UserContext(), id, request)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"code":    fiber.StatusInternalServerError,
-			"message": err.Error(),
-		})
+		return ctx.
+			Status(fiber.StatusInternalServerError).
+			JSON(util.APIResponse[any]{
+				Code:    fiber.StatusInternalServerError,
+				Message: err.Error(),
+			})
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-		"code":    fiber.StatusOK,
-		"message": "successfully update supplier",
-	})
+	return ctx.
+		Status(fiber.StatusCreated).
+		JSON(util.APIResponse[*schema.SupplierCreateResponse]{
+			Code:    fiber.StatusInternalServerError,
+			Message: "successfully update supplier",
+		})
 }
 
 func NewSupplierHandler(
