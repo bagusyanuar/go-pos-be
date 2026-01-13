@@ -47,7 +47,7 @@ func (s *supplierRepositoryImpl) Delete(ctx context.Context, id string) error {
 // Find implements domain.SupplierRepository.
 func (s *supplierRepositoryImpl) Find(
 	ctx context.Context,
-	queryParams schema.SupplierQuery,
+	queryParams *schema.SupplierQuery,
 ) (
 	[]entity.Supplier,
 	*util.PaginationMeta,

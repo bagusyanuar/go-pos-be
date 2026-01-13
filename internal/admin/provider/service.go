@@ -7,6 +7,7 @@ import (
 )
 
 type Services struct {
+	Supplier          domain.SupplierService
 	ProductCategory   domain.ProductCategoryService
 	MaterialCategory  domain.MaterialCategoryService
 	Unit              domain.UnitService
@@ -19,6 +20,7 @@ func NewServices(
 	config *config.AppConfig,
 ) *Services {
 	return &Services{
+		Supplier:          service.NewSupplierService(repos.Supplier, config),
 		ProductCategory:   service.NewProductCategoryService(repos.ProductCategory, config),
 		MaterialCategory:  service.NewMaterialCategoryService(repos.MaterialCategory, config),
 		Unit:              service.NewUnitService(repos.Unit, config),
