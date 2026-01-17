@@ -15,6 +15,8 @@ type (
 		Create(ctx context.Context, supplierEntity *entity.Supplier) (*entity.Supplier, error)
 		Update(ctx context.Context, supplierEnityty *entity.Supplier) (*entity.Supplier, error)
 		Delete(ctx context.Context, id string) error
+		AddContacts(ctx context.Context, supplierEntity *entity.Supplier, contactEntities []entity.SupplierContact) error
+		DeleteContact(ctx context.Context, contactID string) error
 	}
 
 	// 2. Service Interface for Supplier
@@ -24,5 +26,7 @@ type (
 		Create(ctx context.Context, schema *schema.SupplierRequest) (*schema.SupplierCreateResponse, error)
 		Update(ctx context.Context, id string, schema *schema.SupplierRequest) error
 		Delete(ctx context.Context, id string) error
+		AddContacts(ctx context.Context, id string, schema *schema.SupplierContactRequest) error
+		DeleteContact(ctx context.Context, supplierID string, contactID string) error
 	}
 )

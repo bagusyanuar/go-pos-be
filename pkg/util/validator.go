@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bagusyanuar/go-pos-be/pkg/constant"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -71,6 +72,11 @@ func RegisterValidatorRule(v *validator.Validate) {
 		panic("failed to register array validation: " + err.Error())
 	}
 
+	/* === register contact type validation === */
+	if err := contactValidationRule(v); err != nil {
+		panic("failed to register contact type validation: " + err.Error())
+	}
+
 }
 
 func RegisterValidatorTranslation(v *validator.Validate) {
@@ -89,6 +95,10 @@ func RegisterValidatorTranslation(v *validator.Validate) {
 
 	if err := arrayTranslation(v, trans); err != nil {
 		panic("failed to register array translation: " + err.Error())
+	}
+
+	if err := contactTypeTranslation(v, trans); err != nil {
+		panic("failed to register contact type translation: " + err.Error())
 	}
 }
 
@@ -118,6 +128,30 @@ func arrayValidationRule(v *validator.Validate) error {
 	})
 }
 
+var ValidContactTypes = []constant.ContactType{
+	constant.Phone,
+	constant.Whatsapp,
+	constant.Email,
+	constant.Telegram,
+	constant.OnlineShop,
+	constant.Instagram,
+	constant.Facebook,
+	constant.Tiktok,
+	constant.Youtube,
+}
+
+func contactValidationRule(v *validator.Validate) error {
+	return v.RegisterValidation("contact_type", func(fl validator.FieldLevel) bool {
+		value := fl.Field().String()
+		for _, t := range ValidContactTypes {
+			if string(t) == value {
+				return true
+			}
+		}
+		return false
+	})
+}
+
 func symbolTranslation(v *validator.Validate, trans ut.Translator) error {
 	return v.RegisterTranslation("symbol", trans,
 		func(ut ut.Translator) error {
@@ -137,6 +171,26 @@ func arrayTranslation(v *validator.Validate, trans ut.Translator) error {
 		},
 		func(ut ut.Translator, fe validator.FieldError) string {
 			t, _ := ut.T("array", fe.Field())
+			return t
+		},
+	)
+}
+
+func contactTypeTranslation(v *validator.Validate, trans ut.Translator) error {
+	return v.RegisterTranslation("contact_type", trans,
+		func(ut ut.Translator) error {
+			var types []string
+			for _, t := range ValidContactTypes {
+				types = append(types, string(t))
+			}
+
+			joinedEnums := strings.Join(types, ", ")
+			msg := "{0} must be one of: " + joinedEnums
+
+			return ut.Add("contact_type", msg, true)
+		},
+		func(ut ut.Translator, fe validator.FieldError) string {
+			t, _ := ut.T("contact_type", fe.Field())
 			return t
 		},
 	)

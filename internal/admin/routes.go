@@ -21,6 +21,8 @@ func RegisterRoutes(
 	supplier.Get("/:id", handlers.Supplier.FindByID)
 	supplier.Put("/:id", handlers.Supplier.Update)
 	supplier.Delete("/:id", handlers.Supplier.Delete)
+	supplier.Post("/:id/contact", handlers.Supplier.AddContacts)
+	supplier.Delete("/:id/contact/:contactID", handlers.Supplier.DeleteContact)
 
 	materialCategories := privateApi.Group("/material-category")
 	materialCategories.Get("/", handlers.MaterialCategory.Find)

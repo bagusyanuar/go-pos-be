@@ -17,6 +17,34 @@ type supplierRepositoryImpl struct {
 	DB *gorm.DB
 }
 
+// DeleteContacts implements domain.SupplierRepository.
+func (s *supplierRepositoryImpl) DeleteContact(ctx context.Context, contactID string) error {
+	tx := s.DB.WithContext(ctx)
+	var supplierContact entity.SupplierContact
+
+	err := tx.
+		Where("id = ?", contactID).
+		First(&supplierContact).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return exception.ErrRecordNotFound
+		}
+		return err
+	}
+
+	result := tx.Delete(&supplierContact)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return exception.ErrRecordNotFound
+	}
+
+	return nil
+}
+
 // Create implements domain.SupplierRepository.
 func (s *supplierRepositoryImpl) Create(ctx context.Context, supplierEntity *entity.Supplier) (*entity.Supplier, error) {
 	tx := s.DB.WithContext(ctx)
@@ -88,11 +116,6 @@ func (s *supplierRepositoryImpl) Find(
 		return []entity.Supplier{}, 0, err
 	}
 
-	// pagination := util.MakePagination(
-	// 	queryParams.Page,
-	// 	queryParams.PageSize,
-	// 	totalItems,
-	// )
 	return data, totalItems, nil
 }
 
@@ -124,6 +147,44 @@ func (s *supplierRepositoryImpl) Update(ctx context.Context, supplierEnityty *en
 	}
 
 	return supplierEnityty, nil
+}
+
+// AddContacts implements domain.SupplierRepository.
+func (s *supplierRepositoryImpl) AddContacts(
+	ctx context.Context,
+	supplierEntity *entity.Supplier,
+	contactEntities []entity.SupplierContact,
+) error {
+	tx := s.DB.WithContext(ctx).Begin()
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	if len(contactEntities) > 0 {
+		for i := range contactEntities {
+			contactEntities[i].SupplierID = &supplierEntity.ID
+		}
+
+		if err := tx.Create(&contactEntities).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
 }
 
 func (s *supplierRepositoryImpl) filterByParam(param string) func(*gorm.DB) *gorm.DB {

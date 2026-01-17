@@ -15,6 +15,42 @@ type supplierServiceImpl struct {
 	Config             *config.AppConfig
 }
 
+// DeleteContact implements domain.SupplierService.
+func (s *supplierServiceImpl) DeleteContact(ctx context.Context, supplierID string, contactID string) error {
+	_, err := s.SupplierRepository.FindByID(ctx, supplierID)
+
+	if err != nil {
+		return err
+	}
+
+	err = s.SupplierRepository.DeleteContact(ctx, contactID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AddContacts implements domain.SupplierService.
+func (s *supplierServiceImpl) AddContacts(ctx context.Context, id string, schema *schema.SupplierContactRequest) error {
+	supplier, err := s.SupplierRepository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	newContacts := make([]entity.SupplierContact, 0, len(schema.Contacts))
+
+	for _, contact := range schema.Contacts {
+		newContacts = append(newContacts, entity.SupplierContact{
+			SupplierID: &supplier.ID,
+			Type:       contact.Type,
+			Value:      contact.Value,
+		})
+	}
+
+	return s.SupplierRepository.AddContacts(ctx, supplier, newContacts)
+}
+
 // Create implements domain.SupplierService.
 func (s *supplierServiceImpl) Create(ctx context.Context, schema *schema.SupplierRequest) (*schema.SupplierCreateResponse, error) {
 	supplierEntity := entity.Supplier{

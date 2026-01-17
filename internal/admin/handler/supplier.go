@@ -19,6 +19,8 @@ type (
 		Create(ctx *fiber.Ctx) error
 		Update(ctx *fiber.Ctx) error
 		Delete(ctx *fiber.Ctx) error
+		AddContacts(ctx *fiber.Ctx) error
+		DeleteContact(ctx *fiber.Ctx) error
 	}
 
 	supplierHandlerImpl struct {
@@ -26,6 +28,82 @@ type (
 		Config          *config.AppConfig
 	}
 )
+
+// DeleteContact implements SupplierHandler.
+func (s *supplierHandlerImpl) DeleteContact(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	contactID := ctx.Params("contactID")
+
+	err := s.SupplierService.DeleteContact(ctx.UserContext(), id, contactID)
+	if err != nil {
+		if errors.Is(err, exception.ErrRecordNotFound) {
+			return ctx.Status(fiber.StatusNotFound).JSON(util.APIResponse[any]{
+				Code:    fiber.StatusNotFound,
+				Message: err.Error(),
+			})
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(util.APIResponse[any]{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(util.APIResponse[any]{
+		Code:    fiber.StatusOK,
+		Message: "successfully delete supplier contact",
+	})
+}
+
+// AddContacts implements SupplierHandler.
+func (s *supplierHandlerImpl) AddContacts(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+
+	req := new(schema.SupplierContactRequest)
+	if err := ctx.BodyParser(req); err != nil {
+		return ctx.
+			Status(fiber.StatusBadRequest).
+			JSON(util.APIResponse[any]{
+				Code:    fiber.StatusBadRequest,
+				Message: exception.ErrInvalidRequestBody.Error(),
+			})
+	}
+
+	messages, err := util.Validate(s.Config.Validator, req)
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(util.APIResponse[any]{
+				Code:    fiber.StatusUnprocessableEntity,
+				Message: exception.ErrValidation.Error(),
+				Errors:  messages,
+			})
+	}
+
+	err = s.SupplierService.AddContacts(ctx.UserContext(), id, req)
+	if err != nil {
+		if errors.Is(err, exception.ErrRecordNotFound) {
+			return ctx.
+				Status(fiber.StatusNotFound).
+				JSON(util.APIResponse[any]{
+					Code:    fiber.StatusNotFound,
+					Message: err.Error(),
+				})
+		}
+		return ctx.
+			Status(fiber.StatusInternalServerError).
+			JSON(util.APIResponse[any]{
+				Code:    fiber.StatusInternalServerError,
+				Message: err.Error(),
+			})
+	}
+
+	return ctx.
+		Status(fiber.StatusOK).
+		JSON(util.APIResponse[any]{
+			Code:    fiber.StatusOK,
+			Message: "successfully add supplier contacts",
+		})
+}
 
 // Create implements SupplierHandler.
 func (s *supplierHandlerImpl) Create(ctx *fiber.Ctx) error {

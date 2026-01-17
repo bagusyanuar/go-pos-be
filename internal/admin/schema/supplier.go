@@ -7,6 +7,15 @@ type SupplierRequest struct {
 	Name string `json:"name" validate:"required"`
 }
 
+type SupplierContactRequest struct {
+	Contacts []SupplierContact `json:"contacts" validate:"required,dive"`
+}
+
+type SupplierContact struct {
+	Type  string `json:"type" validate:"required,contact_type"`
+	Value string `json:"value" validate:"required"`
+}
+
 // Supplier Query Param Schema
 type SupplierQuery struct {
 	Param string `json:"param"`
