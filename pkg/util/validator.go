@@ -77,6 +77,11 @@ func RegisterValidatorRule(v *validator.Validate) {
 		panic("failed to register contact type validation: " + err.Error())
 	}
 
+	/* === register address type validation === */
+	if err := addressValidationRule(v); err != nil {
+		panic("failed to register address type validation: " + err.Error())
+	}
+
 }
 
 func RegisterValidatorTranslation(v *validator.Validate) {
@@ -99,6 +104,10 @@ func RegisterValidatorTranslation(v *validator.Validate) {
 
 	if err := contactTypeTranslation(v, trans); err != nil {
 		panic("failed to register contact type translation: " + err.Error())
+	}
+
+	if err := addressTypeTranslation(v, trans); err != nil {
+		panic("failed to register address type translation: " + err.Error())
 	}
 }
 
@@ -152,6 +161,23 @@ func contactValidationRule(v *validator.Validate) error {
 	})
 }
 
+var ValidAddressTypes = []constant.AddressType{
+	constant.Home,
+	constant.Office,
+}
+
+func addressValidationRule(v *validator.Validate) error {
+	return v.RegisterValidation("address_type", func(fl validator.FieldLevel) bool {
+		value := fl.Field().String()
+		for _, t := range ValidAddressTypes {
+			if string(t) == value {
+				return true
+			}
+		}
+		return false
+	})
+}
+
 func symbolTranslation(v *validator.Validate, trans ut.Translator) error {
 	return v.RegisterTranslation("symbol", trans,
 		func(ut ut.Translator) error {
@@ -191,6 +217,26 @@ func contactTypeTranslation(v *validator.Validate, trans ut.Translator) error {
 		},
 		func(ut ut.Translator, fe validator.FieldError) string {
 			t, _ := ut.T("contact_type", fe.Field())
+			return t
+		},
+	)
+}
+
+func addressTypeTranslation(v *validator.Validate, trans ut.Translator) error {
+	return v.RegisterTranslation("address_type", trans,
+		func(ut ut.Translator) error {
+			var types []string
+			for _, t := range ValidAddressTypes {
+				types = append(types, string(t))
+			}
+
+			joinedEnums := strings.Join(types, ", ")
+			msg := "{0} must be one of: " + joinedEnums
+
+			return ut.Add("address_type", msg, true)
+		},
+		func(ut ut.Translator, fe validator.FieldError) string {
+			t, _ := ut.T("address_type", fe.Field())
 			return t
 		},
 	)

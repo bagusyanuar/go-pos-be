@@ -13,3 +13,10 @@ const (
 	Tiktok     ContactType = "tiktok"
 	Youtube    ContactType = "youtube"
 )
+
+type AddressType string
+
+const (
+	Home   AddressType = "home"
+	Office AddressType = "office"
+)
