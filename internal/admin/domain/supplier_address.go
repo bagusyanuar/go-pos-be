@@ -10,7 +10,7 @@ import (
 type (
 	SupplierAddressRepository interface {
 		FindBySupplierID(ctx context.Context, supplierID string) ([]entity.SupplierAddress, error)
-		SyncAddresses(ctx context.Context, supplierID string, addressEntities []entity.SupplierAddress) error
+		SyncAddresses(ctx context.Context, supplierEntity *entity.Supplier, addressEntities []entity.SupplierAddress) error
 	}
 
 	SupplierAddressService interface {
